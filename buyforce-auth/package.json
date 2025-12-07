@@ -1,7 +1,3 @@
-<<<<<<< HEAD:package.json
-
-=======
->>>>>>> b5e4370 (Initial commit with auth + backend):buyforce-auth/package.json
 {
   "name": "buyforce-backend",
   "version": "0.0.1",
@@ -47,10 +43,6 @@
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/bcrypt": "^6.0.0",
-<<<<<<< HEAD:package.json
-    "@types/passport-jwt": "^4.0.1",
-=======
->>>>>>> b5e4370 (Initial commit with auth + backend):buyforce-auth/package.json
     "@types/express": "^5.0.0",
     "@types/jest": "^30.0.0",
     "@types/node": "^22.10.7",
