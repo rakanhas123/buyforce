@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import pool from '../db';
+import pool from '../db/db';
 import TranzilaService from './tranzila.service';
 
 export default class PaymentsService {
@@ -15,7 +15,7 @@ export default class PaymentsService {
       [data.idempotencyKey]
     );
 
-    if (exists.rowCount > 0) {
+    if (exists.rowCount! > 0) {
       console.log('[IDEMPOTENCY] Transaction already exists:', data.idempotencyKey);
       return; // לא ליצור שוב
     }
