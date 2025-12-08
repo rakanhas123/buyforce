@@ -12,8 +12,13 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+//  Payments Router (MUST COME AFTER app IS CREATED)
+import paymentsRouter from './payments/payments.routes';
+app.use('/payments', paymentsRouter);
+
 //  Connect to MongoDB
 import { connectMongo } from './db/mongo';
+
 // connect at startup (async)
 connectMongo().catch(err => {
   console.error('Mongo connection error on startup:', err);
@@ -22,7 +27,7 @@ connectMongo().catch(err => {
 //  Load background workers (IMPORTANT)
 import './notification.worker';
 
-//  Routes (example)
+//  Other routes
 import productsRoutes from './routes/products.routes';
 app.use('/api/products', productsRoutes);
 

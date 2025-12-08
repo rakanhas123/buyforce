@@ -1,42 +1,21 @@
-import { Worker } from 'bullmq';
-import { redisConnection } from './redis.connection';
-import { sendEmail } from './services/email.service';
-import { sendPushNotification } from './services/push.service';
+import { Worker, Job } from "bullmq";
+import { redisConnection } from "./redis.connection";
 
-export const notificationWorker = new Worker(
-  'notifications',
-  async job => {
-    const { channel, title, body, payload } = job.data;
+// import connection from "./redis.connection";
 
-    //  EMAIL
-    if (channel === 'email') {
-      if (!payload?.email) {
-        throw new Error('Missing email in payload');
-      }
-
-      await sendEmail(
-        payload.email,
-        title,
-        body
-      );
-    }
-
-    //  PUSH
-    if (channel === 'push') {
-      if (!payload?.token) {
-        throw new Error('Missing push token in payload');
-      }
-
-      await sendPushNotification(
-        payload.token,
-        title,
-        body
-      );
-    }
-
-    // 📝 IN_APP – לא שולחים החוצה (רק DB)
+const worker = new Worker(
+  "notification-queue",
+  async (job: Job) => {
+    console.log("Processing job:", job.id, job.data);
+    // כאן תשימי את הקוד ששולח התראה / אימייל / פוש
   },
-  {
-    connection: redisConnection,
-  }
+  { connection: redisConnection }
 );
+
+worker.on("completed", (job) => {
+  console.log(`Job ${job.id} completed`);
+});
+
+worker.on("failed", (job, err) => {
+  console.error(`Job ${job?.id} failed:`, err);
+});
