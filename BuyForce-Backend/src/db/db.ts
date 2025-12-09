@@ -1,14 +1,18 @@
-import { Pool } from "pg";
+import pkg from "pg";
+const { Pool } = pkg;
 
-const pool = new Pool({
-  user: process.env.PGUSER ?? "postgres",
-  host: process.env.PGHOST ?? "buyforce-postgres",
-  database: process.env.PGDATABASE ?? "buyforce",
-  password:
-    process.env.PGPASSWORD ??
-    process.env.POSTGRES_PASSWORD ??
-    "postgres",
-  port: Number(process.env.PGPORT) || 5432,
+// יצירת Pool עבור PostgreSQL
+const db = new Pool({
+  host: "localhost",     // או "buyforce-postgres" אם את בתוך Docker
+  port: 5432,
+  user: "postgres",      // שם משתמש של PostgreSQL
+  password: "postgres",  // הסיסמה שהגדרת ב-docker-compose
+  database: "postgres",  // שם בסיס הנתונים שלך
 });
 
-export default pool;
+// בדיקה שהחיבור עובד
+db.connect()
+  .then(() => console.log("Connected to PostgreSQL"))
+  .catch((err) => console.error("PostgreSQL connection error:", err));
+
+export default db;

@@ -1,6 +1,7 @@
 import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import groupsRouter from "./routes/groups";
 
 // Load environment variables
 dotenv.config();
@@ -16,20 +17,22 @@ app.use(express.json());
 import paymentsRouter from './payments/payments.routes';
 app.use('/payments', paymentsRouter);
 
-//  Connect to MongoDB
-import { connectMongo } from './db/mongo';
+// //  Connect to MongoDB
+// import { connectMongo } from './db/mongo';
 
-// connect at startup (async)
-connectMongo().catch(err => {
-  console.error('Mongo connection error on startup:', err);
-});
+// // connect at startup (async)
+// connectMongo().catch(err => {
+//   console.error('Mongo connection error on startup:', err);
+// });
 
 //  Load background workers (IMPORTANT)
-import './notification.worker';
+// import './notification.worker';
 
 //  Other routes
 import productsRoutes from './routes/products.routes';
 app.use('/api/products', productsRoutes);
+
+app.use('/api', groupsRouter);
 
 //  Health check endpoint
 app.get('/health', (_req, res) => {
@@ -45,3 +48,4 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`BuyForce backend running on port ${PORT}`);
 });
+
