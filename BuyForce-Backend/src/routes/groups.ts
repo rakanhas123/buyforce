@@ -1,61 +1,129 @@
-import { Router } from "express";
-import db from "../db/db"; // החיבור ל-Postgres שלך
+import express from "express";
+import pool from "../db/db";
 
-const router = Router();
-console.log("Groups router loaded");
+const router = express.Router();
 
-// שליפת כל הקבוצות של משתמש
-router.get("/users/:userId/groups", async (req, res) => {
-    console.log(" ROUTE CALLED with userId =", req.params.userId);
-router.get("/test", (req, res) => {
-  console.log("🔥 TEST route called!");
-  res.json({ message: "TEST OK" });
-});
-
-  const userId = req.params.userId;
-
+/* ==========================================
+   CREATE GROUP  (Admin creates new group)
+   POST /api/groups/create
+========================================== */
+router.post("/create", async (req, res) => {
   try {
-    // 1️⃣ שליפת קבוצות של המשתמש
-    const groups = await db.query(
-      `
-      SELECT g.*
-      FROM groups g
-      JOIN user_groups ug 
-        ON g.id = ug.group_id
-      WHERE ug.user_id = $1
-      `,
-      [userId]
+    const { product_id, price } = req.body;
+
+    if (!product_id || !price) {
+      return res.status(400).json({ error: "product_id and price are required" });
+    }
+
+    const result = await pool.query(
+      `INSERT INTO groups (product_id, price)
+       VALUES ($1, $2)
+       RETURNING *`,
+      [product_id, price]
     );
 
-    // 2️⃣ מיון לפי סטטוס
-    const order = ["active", "pending", "archived"];
-    const sortedGroups = groups.rows.sort(
-      (a, b) => order.indexOf(a.status) - order.indexOf(b.status)
-    );
+    const newGroup = result.rows[0];
 
-    // 3️⃣ היסטוריה של כל קבוצה
-    const groupIds = sortedGroups.map((g) => g.id);
-
-    const history = await db.query(
-      `
-      SELECT *
-      FROM group_history
-      WHERE group_id = ANY($1)
-      ORDER BY created_at DESC
-      `,
-      [groupIds]
+    await pool.query(
+      `INSERT INTO audit_logs (action, details)
+       VALUES ($1, $2)`,
+      ["ADMIN_CREATE_GROUP", { product_id, price }]
     );
 
     res.json({
-      userId,
-      groups: sortedGroups,
-      history: history.rows,
+      message: "Group created successfully",
+      group: newGroup
     });
 
-  } catch (error) {
-    console.error("Error:", error);
-    res.status(500).json({ error: "Server error" });
+  } catch (err: any) {
+    console.error("Error creating group:", err.message);
+    res.status(500).json({ error: err.message });
   }
 });
+
+
+/* ==========================================
+   GET ALL GROUPS
+   GET /api/groups
+========================================== */
+router.get("/", async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT * FROM groups ORDER BY id DESC`
+    );
+
+    res.json({ groups: result.rows });
+
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+/* ==========================================
+   GET GROUP BY ID
+   GET /api/groups/:id
+========================================== */
+router.get("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const result = await pool.query(
+      `SELECT * FROM groups WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    res.json({ group: result.rows[0] });
+
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+
+/* ==========================================
+   CLOSE GROUP (Admin closes group manually)
+   PATCH /api/groups/close/:id
+========================================== */
+router.patch("/close/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const result = await pool.query(
+      `UPDATE groups
+       SET status = 'closed',
+           closed_at = NOW()
+       WHERE id = $1
+       RETURNING *`,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Group not found" });
+    }
+
+    const closedGroup = result.rows[0];
+
+    await pool.query(
+      `INSERT INTO audit_logs (action, details)
+       VALUES ($1, $2)`,
+      ["ADMIN_CLOSE_GROUP", { group_id: id }]
+    );
+
+    res.json({
+      message: "Group closed successfully",
+      group: closedGroup
+    });
+
+  } catch (err: any) {
+    console.error("Error closing group:", err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 export default router;

@@ -1,5 +1,5 @@
 import { Router, Request, Response } from "express";
-import db from "../db/db";
+import pool from "../db";
 
 const router = Router();
 
@@ -21,7 +21,7 @@ router.get("/products", async (req: Request, res: Response) => {
     if (sort === "price_asc")  query += ` ORDER BY p.price ASC`;
     if (sort === "price_desc") query += ` ORDER BY p.price DESC`;
     if (sort === "newest")     query += ` ORDER BY p.created_at DESC`;
-    const result = await db.query(query);
+    const result = await pool.query(query);
     res.json(result.rows);
   } catch (err: any) {
     res.status(500).json({ error: err.message });

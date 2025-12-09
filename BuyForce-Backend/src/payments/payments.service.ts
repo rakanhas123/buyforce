@@ -1,5 +1,5 @@
 import { v4 as uuid } from 'uuid';
-import pool from '../db/db';
+import pool from '../db';
 import TranzilaService from './tranzila.service';
 
 export default class PaymentsService {
