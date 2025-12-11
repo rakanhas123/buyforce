@@ -1,11 +1,17 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import type { ReactElement } from "react";
 
+// Auth pages
 import LoginPage from "../pages/auth/LoginPage";
+import RegisterPage from "../pages/auth/RegisterPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
+
+// Protected pages
 import ProfilePage from "../pages/profile/ProfilePage";
-import WishlistPage from "../pages/wishlist/wishlistPage";
+import WishlistPage from "../pages/wishlist/WishlistPage";
 import NotificationsPage from "../pages/notifications/NotificationsPage";
 
+// Context
 import { useAuth } from "../context/AuthContext";
 
 function PrivateRoute({ children }: { children: ReactElement }) {
@@ -21,10 +27,13 @@ export default function AppRouter() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Authentication */}
-        <Route path="/login" element={<LoginPage />} />
 
-        {/* Protected Pages */}
+        {/* Public auth pages */}
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+
+        {/* Protected pages */}
         <Route
           path="/profile"
           element={
@@ -52,8 +61,9 @@ export default function AppRouter() {
           }
         />
 
-        {/* Home (זמני) */}
+        {/* Home */}
         <Route path="/" element={<div>Home Page</div>} />
+
       </Routes>
     </BrowserRouter>
   );

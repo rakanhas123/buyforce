@@ -2,28 +2,29 @@ import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
-export default function LoginPage() {
-  const { login } = useAuth();
+export default function RegisterPage() {
+  const { register } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
     try {
-      await login(email, password);
+      await register(email, password);
       navigate("/profile");
     } catch (err) {
-      alert("Login failed!");
+      alert("Register failed!");
     }
   };
 
   return (
     <div>
-      <h1>Login</h1>
+      <h1>Register</h1>
 
-      <form onSubmit={handleLogin}>
+      <form onSubmit={handleRegister}>
         <input
           type="email"
           placeholder="Email"
@@ -38,15 +39,11 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
 
-        <button type="submit">Login</button>
+        <button type="submit">Create Account</button>
       </form>
 
       <p>
-        No account? <a href="/register">Register</a>
-      </p>
-
-      <p>
-        Forgot password? <a href="/forgot-password">Reset</a>
+        Already have an account? <a href="/login">Login</a>
       </p>
     </div>
   );
