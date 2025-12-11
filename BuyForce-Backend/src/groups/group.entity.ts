@@ -11,48 +11,48 @@ import { GroupStatus } from './group-status.enum';
 @Entity('groups')
 export class Group {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column()
-  name: string;
+  name!: string;
 
   // כמה משתמשים חייבים להצטרף כדי שהקבוצה תיחשב מלאה (100%)
   @Column({ type: 'int' })
-  minParticipants: number;
+  minParticipants!: number;
 
   // כמה כבר הצטרפו בפועל
   @Column({ type: 'int', default: 0 })
-  joinedCount: number;
+  joinedCount!: number;
 
   // אחוז התקדמות (0–100)
   @Column({ type: 'float', default: 0 })
-  progress: number;
+  progress!: number;
 
   @Column({
     type: 'enum',
     enum: GroupStatus,
     default: GroupStatus.OPEN,
   })
-  status: GroupStatus;
+  status!: GroupStatus;
 
   // מתי הקבוצה נסגרת
   @Index()
   @Column({ type: 'timestamptz' })
-  endsAt: Date;
+  endsAt!: Date;
 
   // flags כדי שלא נשלח טריגר יותר מפעם אחת
   @Column({ type: 'boolean', default: false })
-  notified70: boolean;
+  notified70!: boolean;
 
   @Column({ type: 'boolean', default: false })
-  notified95: boolean;
+  notified95!: boolean;
 
   @Column({ type: 'boolean', default: false })
-  notifiedLast12h: boolean;
+  notifiedLast12h!: boolean;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

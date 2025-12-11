@@ -11,28 +11,28 @@ import { User } from '../users/user.entity';
 @Entity('wishlist_items')
 export class WishlistItem {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   // FK למשתמש
   @Column()
-  userId: string;
+  userId!: string;
 
   @ManyToOne(() => User, (user) => user.wishlistItems, {
     onDelete: 'CASCADE',
   })
-  user: User;
+  user!: User;
 
   // מזהה המוצר מה-Catalog (יכול להיות UUID / מספר / string)
   @Column()
-  productId: string;
+  productId!: string;
 
   // אופציונלי: שם המוצר להצגה מהירה
   @Column({ nullable: true })
   productName?: string;
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }

@@ -12,23 +12,23 @@ import { WishlistItem } from '../wishlist/wishlist-item.entity';
 @Entity('users')
 export class User {
   @PrimaryGeneratedColumn('uuid')
-  id: string;
+  id!: string;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column()
-  passwordHash: string;
+  passwordHash!: string;
 
   @Column({ nullable: true })
-  fullName: string;
+  fullName?: string;
 
   @OneToMany(() => WishlistItem, (item) => item.user)
-  wishlistItems: WishlistItem[];
+  wishlistItems!: WishlistItem[];
 
   @CreateDateColumn()
-  createdAt: Date;
+  createdAt!: Date;
 
   @UpdateDateColumn()
-  updatedAt: Date;
+  updatedAt!: Date;
 }
