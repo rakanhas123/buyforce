@@ -4,7 +4,10 @@ import {
   Column,
   CreateDateColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
+import { WishlistItem } from '../wishlist/wishlist-item.entity';
+
 
 @Entity('users')
 export class User {
@@ -19,6 +22,9 @@ export class User {
 
   @Column({ nullable: true })
   fullName: string;
+
+  @OneToMany(() => WishlistItem, (item) => item.user)
+  wishlistItems: WishlistItem[];
 
   @CreateDateColumn()
   createdAt: Date;
