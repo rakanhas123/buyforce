@@ -27,5 +27,37 @@ router.get("/products", async (req: Request, res: Response) => {
     res.status(500).json({ error: err.message });
   }
 });
+router.get("/products/:id", async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+
+    const query = `
+      SELECT 
+        p.id,
+        p.name,
+        p.price,
+        p.description,
+        c.name AS category_name,
+        (SELECT image_url
+         FROM images
+         WHERE product_id = p.id AND is_main = true
+         LIMIT 1) AS main_image
+      FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
+      WHERE p.id = $1
+      LIMIT 1
+    `;
+
+    const result = await db.query(query, [id]);
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Product not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err: any) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;

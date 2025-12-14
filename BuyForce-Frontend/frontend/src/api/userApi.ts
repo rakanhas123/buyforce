@@ -1,4 +1,4 @@
-import { axiosClient } from "./axiosClient";
+import axiosClient from "./axiosClient";
 
 export const getUserProfile = async (token: string) => {
   const res = await axiosClient.get("/users/profile", {

@@ -66,3 +66,302 @@ button:focus-visible {
     background-color: #f9f9f9;
   }
 }
+/* =========================
+   BuyForce Base Style
+========================= */
+
+:root {
+  --primary: #4f46e5;
+  --success: #22c55e;
+  --bg: #f9fafb;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  --radius-lg: 16px;
+  --radius-md: 12px;
+
+  --shadow: 0 8px 24px rgba(0,0,0,0.06);
+  --shadow-hover: 0 12px 32px rgba(0,0,0,0.1);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+/* =========================
+   Product Card
+========================= */
+
+.product-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+  transition: 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-hover);
+}
+
+.product-image {
+  position: relative;
+  height: 200px;
+}
+
+.product-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.wishlist-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: white;
+  color: #9ca3af;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.wishlist-btn.active {
+  color: #ef4444;
+}
+
+.product-info {
+  padding: 16px;
+  text-align: left;
+}
+
+.product-info h3 {
+  margin: 0 0 8px;
+  font-size: 16px;
+}
+
+.price {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--success);
+  margin-bottom: 12px;
+}
+
+.join-btn {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: none;
+  background: var(--primary);
+  color: white;
+  cursor: pointer;
+}
+
+.join-btn:hover {
+  background: #4338ca;
+}
+/* =========================
+   Home Page
+========================= */
+
+.home-page {
+  padding: 24px;
+}
+
+.home-page section {
+  margin-bottom: 40px;
+}
+
+.home-page h2 {
+  margin-bottom: 16px;
+  font-size: 20px;
+}
+/* =========================
+   Progress Bar
+========================= */
+
+.progress-wrapper {
+  margin-bottom: 12px;
+}
+
+.progress-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #f97316, #22c55e);
+}
+
+.progress-wrapper small {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--muted);
+}
+/* =========================
+   Skeleton Loader
+========================= */
+
+.skeleton {
+  pointer-events: none;
+}
+
+.skeleton-box,
+.skeleton-line,
+.skeleton-bar,
+.skeleton-button {
+  background: linear-gradient(
+    90deg,
+    #e5e7eb 25%,
+    #f3f4f6 37%,
+    #e5e7eb 63%
+  );
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+  border-radius: 8px;
+}
+
+.skeleton-box {
+  height: 200px;
+}
+
+.skeleton-line.title {
+  height: 16px;
+  width: 70%;
+  margin-bottom: 10px;
+}
+
+.skeleton-line.price {
+  height: 18px;
+  width: 40%;
+  margin-bottom: 12px;
+}
+
+.skeleton-bar {
+  height: 8px;
+  width: 100%;
+  margin-bottom: 12px;
+}
+
+.skeleton-button {
+  height: 36px;
+  width: 100%;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+/* =========================
+   Sort Bar
+========================= */
+
+.sort-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.sort-bar label {
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.sort-bar select {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: white;
+  cursor: pointer;
+}
+/* =========================
+   Trending Categories
+========================= */
+
+.trending-categories {
+  margin: 60px 0;
+}
+
+.trending-categories h2 {
+  margin-bottom: 20px;
+}
+
+.category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 20px;
+}
+
+.category-card {
+  position: relative;
+  height: 180px;
+  border-radius: 18px;
+  overflow: hidden;
+  cursor: pointer;
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.category-card:hover {
+  transform: translateY(-6px);
+  box-shadow: var(--shadow-hover);
+}
+
+.category-card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.category-card .overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to top,
+    rgba(0,0,0,0.65),
+    rgba(0,0,0,0.15)
+  );
+  display: flex;
+  align-items: flex-end;
+  padding: 16px;
+}
+
+.category-card span {
+  color: white;
+  font-size: 18px;
+  font-weight: 700;
+}
+/* =========================
+   Wishlist Empty State
+========================= */
+
+.empty-state {
+  margin-top: 100px;
+  text-align: center;
+  color: var(--muted);
+}
+
+.empty-state h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  font-size: 16px;
+}

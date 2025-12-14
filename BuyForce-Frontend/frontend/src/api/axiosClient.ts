@@ -1,6 +1,8 @@
 import axios from "axios";
 
-export const axiosClient = axios.create({
-  baseURL: "http://localhost:3000", // כתובת ה-API שלך (NestJS)
+const axiosClient = axios.create({
+  baseURL: "http://localhost:3000/api",
   withCredentials: true,
 });
+
+export default axiosClient;

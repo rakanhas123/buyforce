@@ -1,40 +1,33 @@
-import { useEffect, useState } from "react";
-import { useAuth } from "../../context/AuthContext";
-import { getWishlist, removeFromWishlist } from "../../api/wishlistApi";
 import ProductCard from "../../components/product/ProductCard";
+import { useWishlist } from "../../context/WishlistContext";
 
 export default function WishlistPage() {
-  const { token } = useAuth();
-  const [items, setItems] = useState<any[]>([]);
+  const { wishlist } = useWishlist();
 
-  useEffect(() => {
-    const load = async () => {
-      if (!token) return;
-      const data = await getWishlist(token);
-      setItems(data);
-    };
-    load();
-  }, [token]);
+  // 🟢 Empty State
+  if (wishlist.length === 0) {
+    return (
+      <div className="empty-state">
+        <h2>Your wishlist is empty 💔</h2>
+        <p>Start saving products you love</p>
+      </div>
+    );
+  }
 
-  const handleRemove = async (productId: number) => {
-    if (!token) return;
-    await removeFromWishlist(token, productId);
-    setItems((prev) => prev.filter((i) => i.productId !== productId));
-  };
-
+  // 🟢 Wishlist עם מוצרים אמיתיים
   return (
-    <div>
-      <h1>My Wishlist</h1>
+    <div className="home-page">
+      <h2>❤️ Your Wishlist</h2>
       <div className="grid">
-        {items.map((item) => (
+        {wishlist.map((p) => (
           <ProductCard
-            key={item.productId}
-            id={item.productId}
-            name={item.name}
-            price={item.price}
-            imageUrl={item.imageUrl}
-            inWishlist={true}
-            onToggleWishlist={() => handleRemove(item.productId)}
+            key={p.id}
+            id={p.id}
+            name={p.name}
+            price={p.price}
+            imageUrl={p.imageUrl}
+            currentMembers={p.currentMembers}
+            goalMembers={p.goalMembers}
           />
         ))}
       </div>
