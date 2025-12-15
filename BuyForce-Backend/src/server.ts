@@ -8,35 +8,50 @@ dotenv.config();
 // Create Express app
 const app = express();
 
-//  Middlewares
+// Middlewares
 app.use(cors());
 app.use(express.json());
 
-//  Connect to MongoDB
+// --------------------
+// Database connections
+// --------------------
 import { connectMongo } from './db/mongo';
-// connect at startup (async)
+
+// Connect to MongoDB at startup
 connectMongo().catch(err => {
   console.error('Mongo connection error on startup:', err);
 });
 
-//  Load background workers (IMPORTANT)
+// --------------------
+// Background workers
+// --------------------
 import './notification.worker';
 
-//  Routes (example)
+// --------------------
+// API Routes (v1)
+// --------------------
 import productsRoutes from './routes/products.routes';
-app.use('/api/products', productsRoutes);
 
-//  Health check endpoint
-app.get('/health', (_req, res) => {
+// Base API version: /v1
+app.use('/v1/products', productsRoutes);
+
+// --------------------
+// Health Check
+// --------------------
+app.get('/v1/health', (_req, res) => {
   res.json({
     status: 'OK',
     service: 'BuyForce Backend',
+    version: 'v1',
   });
 });
 
-//  Start server
+// --------------------
+// Server start
+// --------------------
 const PORT = process.env.PORT || 3000;
 
 app.listen(PORT, () => {
-  console.log(`BuyForce backend running on port ${PORT}`);
+  console.log(`🚀 BuyForce backend running on port ${PORT}`);
+  console.log(`📡 API base URL: http://localhost:${PORT}/v1`);
 });
