@@ -1,19 +1,26 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import ProductCard from "../../components/product/ProductCard";
 import { getProductById } from "../../api/productsApi";
-
+import { useWishlist } from "../../context/WishlistContext";
 
 export default function ProductPage() {
-    console.log("🔥 ProductPage rendered");
+  /* ---------- URL Param ---------- */
+  const { id } = useParams();
 
-    const { id } = useParams();
+  /* ---------- State ---------- */
   const [product, setProduct] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  /* ---------- Wishlist ---------- */
+  const { toggleWishlist, isInWishlist } = useWishlist();
+
+  /* ---------- Fetch Product ---------- */
   useEffect(() => {
     if (!id) return;
+
+    setLoading(true);
+    setError("");
 
     getProductById(id)
       .then((data) => {
@@ -22,10 +29,10 @@ export default function ProductPage() {
           return;
         }
 
-        // 🔧 התאמת שדות מה-Backend ל-Frontend
+        // התאמת שדות Backend → Frontend
         setProduct({
           ...data,
-          imageUrl: data.main_image, // ← זה החלק שהיה חסר
+          imageUrl: data.main_image,
         });
       })
       .catch(() => {
@@ -34,17 +41,15 @@ export default function ProductPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  // 🟡 Loading state
+  /* ---------- States ---------- */
   if (loading) {
-    return <p>Loading product...</p>;
+    return <p style={{ padding: 24 }}>Loading product...</p>;
   }
 
-  // 🔴 Error state
   if (error) {
-    return <p>{error}</p>;
+    return <p style={{ padding: 24 }}>{error}</p>;
   }
 
-  // ⚪ Empty / Not found state
   if (!product) {
     return (
       <div style={{ padding: 40 }}>
@@ -54,18 +59,98 @@ export default function ProductPage() {
     );
   }
 
-  // 🟢 Success
+  /* ---------- Progress ---------- */
+  const progress = Math.round(
+    (product.currentMembers / product.goalMembers) * 100
+  );
+
+  /* ---------- UI ---------- */
   return (
-    <div className="home-page">
-      <ProductCard
-        id={product.id}
-        name={product.name}
-        price={product.price}
-        imageUrl={product.imageUrl}
-        currentMembers={product.currentMembers}
-        goalMembers={product.goalMembers}
-      />
+    <div className="product-page" style={{ padding: 24 }}>
+      {/* Title */}
+      <h1>{product.name}</h1>
+
+      {/* Wishlist */}
+      <button
+        className={`wishlist-btn ${
+          isInWishlist(product.id) ? "active" : ""
+        }`}
+        onClick={() => toggleWishlist(product)}
+        style={{ marginBottom: 16 }}
+      >
+        ♥
+      </button>
+
+      {/* Image with Placeholder */}
+      <div
+        style={{
+          width: "100%",
+          maxWidth: 400,
+          height: 250,
+          background: "#f2f2f2",
+          borderRadius: 12,
+          overflow: "hidden",
+          marginBottom: 16,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+        }}
+      >
+        <img
+          src={product.imageUrl || "/placeholder.png"}
+          alt={product.name}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+          }}
+          onError={(e) => {
+            (e.currentTarget as HTMLImageElement).src =
+              "/placeholder.png";
+          }}
+        />
+      </div>
+
+      {/* Price */}
+      <p style={{ fontSize: 20, fontWeight: "bold" }}>
+        {product.price} ₪
+      </p>
+
+      {/* Progress */}
+      <div style={{ margin: "16px 0" }}>
+        <div
+          style={{
+            height: 10,
+            background: "#eee",
+            borderRadius: 6,
+            overflow: "hidden",
+          }}
+        >
+          <div
+            style={{
+              height: "100%",
+              width: `${progress}%`,
+              background: "#4caf50",
+            }}
+          />
+        </div>
+        <small>
+          {product.currentMembers} / {product.goalMembers} joined
+        </small>
+      </div>
+
+      {/* Join Button */}
+      <button className="join-btn" style={{ marginBottom: 24 }}>
+        Join for 1₪
+      </button>
+
+      {/* Specs */}
+      <h3>Specifications</h3>
+      <ul>
+        <li>Category: {product.category || "N/A"}</li>
+        <li>Brand: {product.brand || "N/A"}</li>
+        <li>Warranty: 12 months</li>
+      </ul>
     </div>
   );
 }
-

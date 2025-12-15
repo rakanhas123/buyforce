@@ -5,12 +5,8 @@ type Props = {
   name: string;
   price: number;
   imageUrl?: string;
-
-  // Progress
   currentMembers?: number;
   goalMembers?: number;
-
-  // Near Goal badge
   isNearGoal?: boolean;
 };
 
@@ -32,17 +28,17 @@ export default function ProductCard({
 
   return (
     <div className="product-card">
+      {/* Image */}
       <div className="product-image">
-
-        {/* Near Goal Badge */}
-        {isNearGoal && (
-          <span className="near-goal-badge">Almost There</span>
+        {imageUrl ? (
+          <img src={imageUrl} alt={name} />
+        ) : (
+          <div className="image-placeholder">No Image</div>
         )}
 
-        {/* Image */}
-        {imageUrl && <img src={imageUrl} alt={name} />}
-
-        {/* ❤️ Wishlist Button */}
+        {/* {isNearGoal && (
+          <span className="near-goal-badge">Almost There</span>
+        )} */}
         <button
           className={`wishlist-btn ${
             isInWishlist(id) ? "active" : ""
@@ -62,11 +58,11 @@ export default function ProductCard({
         </button>
       </div>
 
+      {/* Info */}
       <div className="product-info">
         <h3>{name}</h3>
         <p className="price">{price} ₪</p>
 
-        {/* Progress */}
         <div className="progress-wrapper">
           <div className="progress-bar">
             <div
