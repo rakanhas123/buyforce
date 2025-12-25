@@ -60,27 +60,14 @@ export default function CategoriesScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
-    paddingTop: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#0b0b0b',
-=======
     padding: 16,
     backgroundColor: "#0b0b0f",
->>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
 
   title: {
-<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 15,
-    color: '#fff',
-=======
     fontSize: 28,
     fontWeight: "bold",
     color: "white",
->>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
 
   subtitle: {
@@ -99,16 +86,6 @@ const styles = StyleSheet.create({
   },
 
   card: {
-<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
-    width: 120,
-    height: 150,
-    marginRight: 15,
-    borderRadius: 10,
-    backgroundColor: '#1a1a1a',
-    alignItems: 'center',
-    justifyContent: 'center',
-    padding: 10,
-=======
     flex: 1,
     backgroundColor: "#141421",
     borderRadius: 20,
@@ -119,7 +96,6 @@ const styles = StyleSheet.create({
     gap: 12,
     borderWidth: 1,
     borderColor: "#1f1f2e",
->>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
 
   cardPressed: {
@@ -134,10 +110,6 @@ const styles = StyleSheet.create({
   cardTitle: {
     color: "white",
     fontSize: 16,
-<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
-    textAlign: 'center',
-    color: '#fff',
-=======
     fontWeight: "600",
   },
 
@@ -153,6 +125,5 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 13,
     fontWeight: "600",
->>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
 });
