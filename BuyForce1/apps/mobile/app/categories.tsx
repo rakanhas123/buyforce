@@ -1,68 +1,105 @@
-// apps/mobile/app/tabs/categories.tsx
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
+import { useRouter } from "expo-router";
 
-// סוג נתון עבור קטגוריה
 type Category = {
   id: string;
-  name: string;
-  image: string; // URL או מיקום תמונה מקומית
+  title: string;
+  icon: string;
 };
 
-const CategoriesScreen = () => {
-  const [categories, setCategories] = useState<Category[]>([]);
+const CATEGORIES: Category[] = [
+  { id: "electronics", title: "Electronics", icon: "🎧" },
+  { id: "fashion", title: "Fashion", icon: "👟" },
+  { id: "home", title: "Home", icon: "🏠" },
+  { id: "beauty", title: "Beauty", icon: "🧴" },
+];
 
-  // כאן אפשר להתחבר ל-API של BuyForce או להשתמש בדאטה דמה
-  useEffect(() => {
-    const fetchCategories = async () => {
-      // דוגמה של נתונים סטטיים
-      const data: Category[] = [
-        { id: '1', name: 'אלקטרוניקה', image: 'https://via.placeholder.com/150' },
-        { id: '2', name: 'ביגוד', image: 'https://via.placeholder.com/150' },
-        { id: '3', name: 'ספרים', image: 'https://via.placeholder.com/150' },
-        { id: '4', name: 'קוסמטיקה', image: 'https://via.placeholder.com/150' },
-      ];
-      setCategories(data);
-    };
-
-    fetchCategories();
-  }, []);
-
-  const renderCategory = ({ item }: { item: Category }) => (
-    <TouchableOpacity style={styles.card} onPress={() => console.log('Selected:', item.name)}>
-      <Image source={{ uri: item.image }} style={styles.image} />
-      <Text style={styles.text}>{item.name}</Text>
-    </TouchableOpacity>
-  );
+export default function CategoriesScreen() {
+  const router = useRouter();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>קטגוריות</Text>
+      <Text style={styles.title}>Categories</Text>
+      <Text style={styles.subtitle}>
+        Choose a category to see available products
+      </Text>
+
       <FlatList
-        data={categories}
-        renderItem={renderCategory}
+        data={CATEGORIES}
         keyExtractor={(item) => item.id}
-        horizontal
-        showsHorizontalScrollIndicator={false}
+        numColumns={2}
+        columnWrapperStyle={styles.row}
+        contentContainerStyle={styles.list}
+        renderItem={({ item }) => (
+          <Pressable
+            style={({ pressed }) => [
+              styles.card,
+              pressed && styles.cardPressed,
+            ]}
+            onPress={() =>
+              router.push({
+                pathname: "/Screens/products",
+                params: { categoryId: item.id },
+              })
+            }
+          >
+            <Text style={styles.icon}>{item.icon}</Text>
+            <Text style={styles.cardTitle}>{item.title}</Text>
+
+            <View style={styles.selectBadge}>
+              <Text style={styles.selectText}>Select</Text>
+            </View>
+          </Pressable>
+        )}
       />
     </View>
   );
-};
+}
 
+/* ================= Styles ================= */
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
     paddingTop: 20,
     paddingHorizontal: 10,
     backgroundColor: '#0b0b0b',
+=======
+    padding: 16,
+    backgroundColor: "#0b0b0f",
+>>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
+
   title: {
+<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 15,
     color: '#fff',
+=======
+    fontSize: 28,
+    fontWeight: "bold",
+    color: "white",
+>>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
+
+  subtitle: {
+    color: "#9a9a9a",
+    marginBottom: 18,
+    marginTop: 4,
+    fontSize: 13,
+  },
+
+  list: {
+    gap: 14,
+  },
+
+  row: {
+    gap: 14,
+  },
+
   card: {
+<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
     width: 120,
     height: 150,
     marginRight: 15,
@@ -71,18 +108,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
+=======
+    flex: 1,
+    backgroundColor: "#141421",
+    borderRadius: 20,
+    paddingVertical: 24,
+    paddingHorizontal: 12,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    borderWidth: 1,
+    borderColor: "#1f1f2e",
+>>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
-  image: {
-    width: 80,
-    height: 80,
-    marginBottom: 10,
-    borderRadius: 40,
+
+  cardPressed: {
+    transform: [{ scale: 0.97 }],
+    opacity: 0.9,
   },
-  text: {
+
+  icon: {
+    fontSize: 36,
+  },
+
+  cardTitle: {
+    color: "white",
     fontSize: 16,
+<<<<<<< HEAD:BuyForce1/apps/mobile/app/categories.tsx
     textAlign: 'center',
     color: '#fff',
+=======
+    fontWeight: "600",
+  },
+
+  selectBadge: {
+    marginTop: 6,
+    backgroundColor: "#ffffff22",
+    paddingHorizontal: 16,
+    paddingVertical: 6,
+    borderRadius: 999,
+  },
+
+  selectText: {
+    color: "white",
+    fontSize: 13,
+    fontWeight: "600",
+>>>>>>> ac947e26b9ab2b39954631bbe7be05b34a1b266b:BuyForce1/apps/mobile/app/(tabs)/categories.tsx
   },
 });
-
-export default CategoriesScreen;

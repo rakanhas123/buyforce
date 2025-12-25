@@ -1,195 +1,161 @@
-import { View, Text, StyleSheet, Image, Pressable, ActivityIndicator } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  Image,
+  Pressable,
+} from "react-native";
+import { useLocalSearchParams } from "expo-router";
 
-// ניסיון לייבא API אמיתי (אם קיים)
-let api: any = null;
-try {
-  api = require("../../src/config/api").default;
-} catch {
-  api = null;
-}
-
+/* ===== טיפוס ===== */
 type Product = {
-  id: number;
-  name: string;
+  id: string;
+  title: string;
   price: number;
-  description?: string;
-  imageUrl?: string;
-  currentMembers?: number;
-  goalMembers?: number;
+  image: string;
+  members: number;
+  goal: number;
 };
 
-const DEMO_PRODUCT: Product = {
-  id: 1,
-  name: "Apple AirPods Pro",
-  price: 899,
-  description: "אוזניות אלחוטיות עם ביטול רעשים אקטיבי.",
-  imageUrl:
-    "https://images.unsplash.com/photo-1588156979435-1d26a06f5b26?auto=format&fit=crop&w=900&q=60",
-  currentMembers: 62,
-  goalMembers: 100,
-};
+/* ===== דאטה (אותו ID כמו במסך products) ===== */
+const PRODUCTS: Product[] = [
+  {
+    id: "p1",
+    title: "AirPods Pro",
+    price: 899,
+    image:
+      "https://images.unsplash.com/photo-1588156979435-1d26a06f5b26",
+    members: 62,
+    goal: 100,
+  },
+  {
+    id: "p2",
+    title: "Nike Air Force",
+    price: 449,
+    image:
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
+    members: 91,
+    goal: 100,
+  },
+];
 
-export default function ProductDetails() {
+export default function ProductScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const router = useRouter();
 
-  const [product, setProduct] = useState<Product | null>(null);
-  const [loading, setLoading] = useState(true);
+  const product = PRODUCTS.find((p) => p.id === id);
 
-  useEffect(() => {
-    const loadProduct = async () => {
-      try {
-        if (api?.get && id) {
-          const res = await api.get(`/v1/products/${id}`);
-          const p = res.data;
-
-          setProduct({
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            description: p.description,
-            imageUrl: p.imageUrl || p.image_url,
-            currentMembers: p.currentMembers ?? 0,
-            goalMembers: p.goalMembers ?? 100,
-          });
-        } else {
-          setProduct(DEMO_PRODUCT);
-        }
-      } catch {
-        setProduct(DEMO_PRODUCT);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadProduct();
-  }, [id]);
-
-  if (loading || !product) {
+  if (!product) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator />
-        <Text style={styles.loadingText}>טוען מוצר...</Text>
+      <View style={styles.container}>
+        <Text style={styles.title}>Product not found</Text>
       </View>
     );
   }
 
-  const progress = Math.min(
-    100,
-    Math.round(
-      ((product.currentMembers ?? 0) /
-        (product.goalMembers ?? 100)) *
-        100
-    )
+  const progress = Math.round(
+    (product.members / product.goal) * 100
   );
 
   return (
     <View style={styles.container}>
-      {product.imageUrl && (
-        <Image source={{ uri: product.imageUrl }} style={styles.image} />
-      )}
+      <Image source={{ uri: product.image }} style={styles.image} />
 
-      <Text style={styles.title}>{product.name}</Text>
+      <Text style={styles.title}>{product.title}</Text>
       <Text style={styles.price}>₪{product.price}</Text>
 
-      <Text style={styles.description}>
-        {product.description || "אין תיאור למוצר"}
-      </Text>
-
-      <View style={styles.progressBox}>
-        <Text style={styles.progressText}>
-          {product.currentMembers}/{product.goalMembers} מצטרפים
-        </Text>
-
-        <View style={styles.progressBg}>
-          <View style={[styles.progressFill, { width: `${progress}%` }]} />
-        </View>
+      <View style={styles.progressBar}>
+        <View
+          style={[styles.progressFill, { width: `${progress}%` }]}
+        />
       </View>
 
-      <Pressable style={styles.joinBtn}>
-        <Text style={styles.joinText}>הצטרפות לקנייה קבוצתית</Text>
-      </Pressable>
+      <Text style={styles.meta}>
+        {product.members}/{product.goal} members ({progress}%)
+      </Text>
 
-      <Pressable onPress={() => router.back()}>
-        <Text style={styles.back}>← חזרה</Text>
+      {progress >= 80 && (
+        <Text style={styles.badge}>🔥 Almost there</Text>
+      )}
+
+      <Pressable style={styles.joinButton}>
+        <Text style={styles.joinText}>Join Group</Text>
       </Pressable>
     </View>
   );
 }
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0b0b0b",
     padding: 16,
+    backgroundColor: "#0b0b0f",
   },
+
   image: {
     width: "100%",
     height: 260,
-    borderRadius: 16,
-    marginBottom: 16,
+    borderRadius: 20,
+    marginBottom: 20,
   },
+
   title: {
-    color: "#fff",
-    fontSize: 24,
-    fontWeight: "800",
+    fontSize: 26,
+    fontWeight: "bold",
+    color: "white",
     marginBottom: 6,
   },
+
   price: {
-    color: "#3b82f6",
-    fontSize: 20,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
-  description: {
+    fontSize: 22,
+    fontWeight: "600",
     color: "#cfcfcf",
-    fontSize: 14,
-    marginBottom: 20,
-    lineHeight: 20,
+    marginBottom: 18,
   },
-  progressBox: {
-    marginBottom: 20,
-  },
-  progressText: {
-    color: "#9ca3af",
+
+  progressBar: {
+    height: 10,
+    backgroundColor: "#1f1f2e",
+    borderRadius: 20,
+    overflow: "hidden",
     marginBottom: 6,
   },
-  progressBg: {
-    height: 10,
-    backgroundColor: "#1f1f1f",
-    borderRadius: 999,
-    overflow: "hidden",
-  },
+
   progressFill: {
     height: "100%",
-    backgroundColor: "#22c55e",
+    backgroundColor: "#ffffffcc",
   },
-  joinBtn: {
-    backgroundColor: "#3b82f6",
-    paddingVertical: 14,
-    borderRadius: 14,
+
+  meta: {
+    color: "#9a9a9a",
+    fontSize: 13,
+    marginBottom: 10,
+  },
+
+  badge: {
+    alignSelf: "flex-start",
+    backgroundColor: "#2b2b15",
+    color: "#ffd700",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    fontWeight: "bold",
+    marginBottom: 24,
+    fontSize: 13,
+  },
+
+  joinButton: {
+    marginTop: "auto",
+    backgroundColor: "#ffffff22",
+    paddingVertical: 16,
+    borderRadius: 28,
     alignItems: "center",
-    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: "#ffffff33",
   },
+
   joinText: {
-    color: "#fff",
-    fontSize: 16,
+    color: "white",
+    fontSize: 17,
     fontWeight: "700",
-  },
-  back: {
-    color: "#9ca3af",
-    textAlign: "center",
-  },
-  center: {
-    flex: 1,
-    backgroundColor: "#0b0b0b",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  loadingText: {
-    color: "#9ca3af",
-    marginTop: 10,
+    letterSpacing: 0.3,
   },
 });
