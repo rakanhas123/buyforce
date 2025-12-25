@@ -13,6 +13,7 @@ export default function RootLayout() {
           headerTintColor: "#fff",
           headerTitleStyle: { fontWeight: "700" },
           contentStyle: { backgroundColor: "#0b0b0b" },
+          headerShown:false,
         }}
       >
         {/* Tabs: Home / Wishlist / Profile / Notifications */}
