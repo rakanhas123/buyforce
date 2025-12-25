@@ -16,6 +16,7 @@ export default function RootLayout() {
           tabBarStyle: { backgroundColor: "#1a1a1a", borderTopColor: "#333" },
           tabBarActiveTintColor: "#fff",
           tabBarInactiveTintColor: "#666",
+          headerShown:false,
         }}
       >
         <Tabs.Screen
@@ -76,7 +77,6 @@ export default function RootLayout() {
           name="product/[id]"
           options={{
             title: "Product",
-            presentation: "card",
             headerShown: true,
           }}
         />
