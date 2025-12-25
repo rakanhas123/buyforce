@@ -1,15 +1,27 @@
-import { View, Text, FlatList, StyleSheet, Image, Pressable, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Image,
+  Pressable,
+  TextInput,
+} from "react-native";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+
+/* ========= Types ========= */
 
 type Product = {
   id: number;
   name: string;
   price: number;
   imageUrl?: string;
-  currentMembers?: number;
-  goalMembers?: number;
+  currentMembers: number;
+  goalMembers: number;
 };
+
+/* ========= Demo Data ========= */
 
 const DEMO_PRODUCTS: Product[] = [
   {
@@ -30,35 +42,68 @@ const DEMO_PRODUCTS: Product[] = [
     currentMembers: 91,
     goalMembers: 100,
   },
-  {
-    id: 3,
-    name: "Samsung Galaxy Watch",
-    price: 699,
-    imageUrl:
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=60",
-    currentMembers: 12,
-    goalMembers: 50,
-  },
 ];
+
+/* ========= API (optional & typed) ========= */
+
+type ApiClient = {
+  get: (url: string) => Promise<{ data: unknown[] }>;
+};
+
+let api: ApiClient | null = null;
+
+try {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  api = require("../../src/config/api").default as ApiClient;
+} catch {
+  api = null;
+}
+
+/* ========= Component ========= */
 
 export default function HomeScreen() {
   const router = useRouter();
-  const [search, setSearch] = useState("");
 
-  const filteredProducts = useMemo(() => {
-    if (!search.trim()) return DEMO_PRODUCTS;
-    return DEMO_PRODUCTS.filter((p) =>
+  const [search, setSearch] = useState<string>("");
+  const [products, setProducts] = useState<Product[]>([]);
+
+  useEffect(() => {
+    const loadProducts = async (): Promise<void> => {
+      try {
+        if (api) {
+          const res = await api.get("/v1/products");
+
+          const mapped: Product[] = res.data.map((p: any) => ({
+            id: Number(p.id),
+            name: String(p.name),
+            price: Number(p.price),
+            imageUrl: p.imageUrl ?? p.image_url,
+            currentMembers: Number(p.currentMembers ?? 0),
+            goalMembers: Number(p.goalMembers ?? 100),
+          }));
+
+          setProducts(mapped);
+        } else {
+          setProducts(DEMO_PRODUCTS);
+        }
+      } catch {
+        setProducts(DEMO_PRODUCTS);
+      }
+    };
+
+    loadProducts();
+  }, []);
+
+  const filteredProducts = useMemo<Product[]>(() => {
+    if (!search.trim()) return products;
+    return products.filter((p: Product) =>
       p.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, products]);
 
   const renderItem = ({ item }: { item: Product }) => {
-    const progress = Math.min(
-      100,
-      Math.round(
-        ((item.currentMembers ?? 0) / (item.goalMembers ?? 100)) * 100
-      )
-    );
+    const progress =
+      Math.round((item.currentMembers / item.goalMembers) * 100) || 0;
 
     return (
       <Pressable
@@ -69,7 +114,7 @@ export default function HomeScreen() {
           <Image source={{ uri: item.imageUrl }} style={styles.image} />
         )}
 
-        <View style={styles.cardBody}>
+        <View style={styles.body}>
           <Text style={styles.title}>{item.name}</Text>
           <Text style={styles.price}>₪{item.price}</Text>
 
@@ -90,28 +135,28 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>BuyForce</Text>
-      <Text style={styles.subHeader}>קנייה קבוצתית חכמה</Text>
 
       <TextInput
         placeholder="חיפוש מוצר..."
         placeholderTextColor="#9ca3af"
         value={search}
-        onChangeText={setSearch}
+        onChangeText={(text: string) => setSearch(text)}
         style={styles.search}
       />
 
       <FlatList
         data={filteredProducts}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item: Product) => item.id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={
-          <Text style={styles.empty}>אין מוצרים להצגה</Text>
+          <Text style={styles.empty}>אין מוצרים</Text>
         }
       />
     </View>
   );
 }
+
+/* ========= Styles ========= */
 
 const styles = StyleSheet.create({
   container: {
@@ -123,9 +168,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 28,
     fontWeight: "800",
-  },
-  subHeader: {
-    color: "#9ca3af",
     marginBottom: 16,
   },
   search: {
@@ -134,38 +176,31 @@ const styles = StyleSheet.create({
     padding: 12,
     color: "#fff",
     marginBottom: 16,
-    borderWidth: 1,
-    borderColor: "#1f1f1f",
   },
   card: {
     backgroundColor: "#111",
     borderRadius: 16,
     marginBottom: 16,
     overflow: "hidden",
-    borderWidth: 1,
-    borderColor: "#1f1f1f",
   },
   image: {
     width: "100%",
     height: 180,
   },
-  cardBody: {
+  body: {
     padding: 12,
   },
   title: {
     color: "#fff",
-    fontSize: 16,
     fontWeight: "700",
   },
   price: {
     color: "#3b82f6",
-    fontWeight: "700",
-    marginVertical: 4,
+    marginVertical: 6,
   },
   progressText: {
     color: "#9ca3af",
     fontSize: 12,
-    marginBottom: 4,
   },
   progressBg: {
     height: 8,
@@ -175,7 +210,6 @@ const styles = StyleSheet.create({
   progressFill: {
     height: "100%",
     backgroundColor: "#22c55e",
-    borderRadius: 999,
   },
   empty: {
     color: "#9ca3af",

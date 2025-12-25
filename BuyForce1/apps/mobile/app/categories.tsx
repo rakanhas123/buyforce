@@ -54,19 +54,20 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingTop: 20,
     paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    backgroundColor: '#0b0b0b',
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 15,
+    color: '#fff',
   },
   card: {
     width: 120,
     height: 150,
     marginRight: 15,
     borderRadius: 10,
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#1a1a1a',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 10,
@@ -80,6 +81,7 @@ const styles = StyleSheet.create({
   text: {
     fontSize: 16,
     textAlign: 'center',
+    color: '#fff',
   },
 });
 

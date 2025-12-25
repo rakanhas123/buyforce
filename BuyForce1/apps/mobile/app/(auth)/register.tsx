@@ -60,6 +60,7 @@ export default function RegisterPage() {
             value={name}
             onChangeText={setName}
             placeholder="Your name"
+            placeholderTextColor="#9ca3af"
             autoCapitalize="words"
           />
         </View>
@@ -71,6 +72,7 @@ export default function RegisterPage() {
             value={email}
             onChangeText={setEmail}
             placeholder="you@email.com"
+            placeholderTextColor="#9ca3af"
             keyboardType="email-address"
             autoCapitalize="none"
           />
@@ -83,6 +85,7 @@ export default function RegisterPage() {
             value={password}
             onChangeText={setPassword}
             placeholder="••••••••"
+            placeholderTextColor="#9ca3af"
             secureTextEntry
           />
         </View>
@@ -94,6 +97,7 @@ export default function RegisterPage() {
             value={confirmPassword}
             onChangeText={setConfirmPassword}
             placeholder="••••••••"
+            placeholderTextColor="#9ca3af"
             secureTextEntry
           />
         </View>
@@ -121,7 +125,7 @@ export default function RegisterPage() {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#0b0b0b",
     justifyContent: "center",
   },
   formContainer: {
@@ -134,7 +138,7 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: "bold",
     textAlign: "center",
-    color: "#1f2937",
+    color: "#fff",
     marginBottom: 24,
   },
   inputContainer: {
@@ -142,20 +146,22 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    color: "#4b5563",
+    color: "#9ca3af",
     marginBottom: 4,
   },
   input: {
     width: "100%",
     borderWidth: 1,
-    borderColor: "#d1d5db",
+    borderColor: "#333",
     borderRadius: 8,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 16,
+    backgroundColor: "#1a1a1a",
+    color: "#fff",
   },
   button: {
-    backgroundColor: "#000",
+    backgroundColor: "#3b82f6",
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 8,
@@ -173,10 +179,11 @@ const styles = StyleSheet.create({
   linkText: {
     textAlign: "center",
     fontSize: 14,
-    color: "#4b5563",
+    color: "#9ca3af",
   },
   linkBold: {
     fontWeight: "600",
     textDecorationLine: "underline",
+    color: "#3b82f6",
   },
 });
