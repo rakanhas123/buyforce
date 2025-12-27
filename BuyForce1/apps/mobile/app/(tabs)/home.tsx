@@ -1,53 +1,27 @@
-import { View, Text, FlatList, StyleSheet, Image, Pressable, TextInput } from "react-native";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Image,
+  Pressable,
+  TextInput,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  imageUrl?: string;
-  currentMembers?: number;
-  goalMembers?: number;
-};
+/* 🔹 ייבוא המוצרים המשותפים */
+import { PRODUCTS, Product } from "../lib/products";
 
-const DEMO_PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: "Apple AirPods Pro",
-    price: 899,
-    imageUrl:
-      "https://images.unsplash.com/photo-1588156979435-1d26a06f5b26?auto=format&fit=crop&w=800&q=60",
-    currentMembers: 62,
-    goalMembers: 100,
-  },
-  {
-    id: 2,
-    name: "Nike Air Force 1",
-    price: 449,
-    imageUrl:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=60",
-    currentMembers: 91,
-    goalMembers: 100,
-  },
-  {
-    id: 3,
-    name: "Samsung Galaxy Watch",
-    price: 699,
-    imageUrl:
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=60",
-    currentMembers: 12,
-    goalMembers: 50,
-  },
-];
 
 export default function HomeScreen() {
   const router = useRouter();
   const [search, setSearch] = useState("");
 
+  /* 🔹 סינון לפי חיפוש */
   const filteredProducts = useMemo(() => {
-    if (!search.trim()) return DEMO_PRODUCTS;
-    return DEMO_PRODUCTS.filter((p) =>
+    if (!search.trim()) return PRODUCTS;
+    return PRODUCTS.filter((p) =>
       p.name.toLowerCase().includes(search.toLowerCase())
     );
   }, [search]);
@@ -56,7 +30,9 @@ export default function HomeScreen() {
     const progress = Math.min(
       100,
       Math.round(
-        ((item.currentMembers ?? 0) / (item.goalMembers ?? 100)) * 100
+        ((item.currentMembers ?? 0) /
+          (item.goalMembers ?? 100)) *
+          100
       )
     );
 
@@ -66,7 +42,10 @@ export default function HomeScreen() {
         onPress={() => router.push(`/product/${item.id}`)}
       >
         {item.imageUrl && (
-          <Image source={{ uri: item.imageUrl }} style={styles.image} />
+          <Image
+            source={{ uri: item.imageUrl }}
+            style={styles.image}
+          />
         )}
 
         <View style={styles.cardBody}>
@@ -79,7 +58,10 @@ export default function HomeScreen() {
 
           <View style={styles.progressBg}>
             <View
-              style={[styles.progressFill, { width: `${progress}%` }]}
+              style={[
+                styles.progressFill,
+                { width: `${progress}%` },
+              ]}
             />
           </View>
         </View>
@@ -90,7 +72,9 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>BuyForce</Text>
-      <Text style={styles.subHeader}>קנייה קבוצתית חכמה</Text>
+      <Text style={styles.subHeader}>
+        קנייה קבוצתית חכמה
+      </Text>
 
       <TextInput
         placeholder="חיפוש מוצר..."
@@ -102,17 +86,24 @@ export default function HomeScreen() {
 
       <FlatList
         data={filteredProducts}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) =>
+          item.id.toString()
+        }
         renderItem={renderItem}
-        contentContainerStyle={{ paddingBottom: 20 }}
+        contentContainerStyle={{
+          paddingBottom: 20,
+        }}
         ListEmptyComponent={
-          <Text style={styles.empty}>אין מוצרים להצגה</Text>
+          <Text style={styles.empty}>
+            אין מוצרים להצגה
+          </Text>
         }
       />
     </View>
   );
 }
 
+/* 🎨 Styles */
 const styles = StyleSheet.create({
   container: {
     flex: 1,

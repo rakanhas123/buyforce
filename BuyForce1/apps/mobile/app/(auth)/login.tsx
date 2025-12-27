@@ -1,11 +1,5 @@
+import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
 import { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
 import { useRouter } from "expo-router";
 
 export default function LoginScreen() {
@@ -13,46 +7,35 @@ export default function LoginScreen() {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = async () => {
-    setLoading(true);
-    setError("");
-
-    try {
-      const res = await fetch(
-        "http://10.0.2.2:3001/v1/auth/login", // Android Emulator
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ email, password }),
-        }
-      );
-
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.message || "Login failed");
-
-      router.replace("/home"); // בהמשך נוסיף Home
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
+  const handleLogin = () => {
+    // ❌ בדיקה – אם אחד ריק
+    if (!email || !password) {
+      Alert.alert("Error", "Please enter email and password");
+      return;
     }
+
+    // ✅ יש מייל וסיסמה
+    setLoading(true);
+
+    // 🔹 מדמה התחברות
+    setTimeout(() => {
+      setLoading(false);
+      router.replace("/(tabs)/home");
+    }, 1000);
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome back 👋</Text>
 
-      {error !== "" && <Text style={styles.error}>{error}</Text>}
-
       <TextInput
         placeholder="Email"
         value={email}
         onChangeText={setEmail}
-        style={styles.input}
         autoCapitalize="none"
+        style={styles.input}
       />
 
       <TextInput
@@ -63,11 +46,15 @@ export default function LoginScreen() {
         style={styles.input}
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+      <Pressable
+        style={styles.button}
+        onPress={handleLogin}
+        disabled={loading}
+      >
         <Text style={styles.buttonText}>
           {loading ? "Loading..." : "Login"}
         </Text>
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 }
@@ -81,31 +68,26 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 22,
-    fontWeight: "bold",
-    textAlign: "center",
+    fontWeight: "700",
     marginBottom: 20,
+    textAlign: "center",
   },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 8,
+    borderColor: "#ddd",
+    borderRadius: 12,
+    padding: 14,
     marginBottom: 12,
   },
   button: {
     backgroundColor: "#000",
-    padding: 14,
-    borderRadius: 8,
+    padding: 16,
+    borderRadius: 14,
+    alignItems: "center",
     marginTop: 10,
   },
   buttonText: {
     color: "#fff",
-    textAlign: "center",
-    fontWeight: "bold",
-  },
-  error: {
-    color: "red",
-    textAlign: "center",
-    marginBottom: 10,
+    fontWeight: "600",
   },
 });
