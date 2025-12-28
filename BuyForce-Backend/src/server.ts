@@ -12,15 +12,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// --------------------
-// Database connections
-// --------------------
-import { connectMongo } from './db/mongo';
-
-// Connect to MongoDB at startup
-connectMongo().catch(err => {
-  console.error('Mongo connection error on startup:', err);
-});
+// Database connections: using Postgres pool from `src/db` when needed.
 
 // --------------------
 // Background workers
