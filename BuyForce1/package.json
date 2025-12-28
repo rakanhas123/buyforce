@@ -1,21 +1,24 @@
 {
-  "name": "buyforce",
-  "private": true,
-  "version": "0.0.1",
-  "workspaces": [
-    "apps/*",
-    "packages/*"
-  ],
+  "name": "buyforce-mobile",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
   "scripts": {
-    "dev:web": "npm --workspace apps/web run dev",
-    "dev:mobile": "npm --workspace apps/mobile run start"
+    "start": "expo start",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web"
+  },
+  "dependencies": {
+    "@expo/vector-icons": "^15.0.3",
+    "@react-native-async-storage/async-storage": "2.2.0",
+    "expo": "latest",
+    "expo-router": "latest",
+    "react": "latest",
+    "react-native": "latest",
+    "react-native-web": "^0.21.2"
   },
   "devDependencies": {
-    "typescript": "^5.4.0"
-  },
-  "main": "index.js",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "description": ""
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  }
 }

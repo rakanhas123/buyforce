@@ -1,0 +1,17 @@
+{
+  "expo": {
+    "name": "BuyForce",
+    "slug": "buyforce",
+    "version": "1.0.0",
+    "scheme": "buyforce",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "web": {
+      "favicon": "./favicon.png"
+    },
+    "plugins": [
+      "expo-router"
+    ]
+  }
+}
