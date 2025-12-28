@@ -18,81 +18,117 @@ type Group = {
   members: number;
   goal: number;
   categoryId: string;
+  productId: number; //Added to link to product
 };
 
 /* ================= Data ================= */
 const GROUPS: Group[] = [
   {
     id: "g1",
-    title: "Luxury Perfume",
-    price: 299,
-    image: "https://images.unsplash.com/photo-1594035910387-fea47794261f",
-    members: 45,
-    goal: 80,
-    categoryId: "perfume",
+    title: "Apple AirPods Pro Group",
+    price: 899,
+    image: "...",
+    members: 62,
+    goal: 100,
+    categoryId: "accessories",
+    productId: 1, // 🔗 קשור למוצר AirPods
   },
   {
     id: "g2",
-    title: "Gaming Laptop",
-    price: 4999,
-    image: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
-    members: 22,
+    title: "Running Shoes Group",
+    price: 349,
+    image: "...",
+    members: 12,
     goal: 50,
-    categoryId: "computer",
+    categoryId: "sports",
+    productId: 3, // 🔗 קשור לנעליים
   },
   {
     id: "g3",
     title: "Wireless Headphones",
     price: 399,
-    image: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+    image:
+      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=60",
     members: 68,
     goal: 100,
     categoryId: "accessories",
+    productId: 1,
   },
   {
     id: "g4",
     title: "Smartphone Pro",
     price: 3499,
-    image: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9",
+    image:
+      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=60",
     members: 91,
     goal: 100,
     categoryId: "mobile",
+    productId: 2,
   },
+  {
+  id: "g5",
+  title: "Luxury Perfume Group",
+  price: 249,
+  image:
+    "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=800&q=60",
+  members: 18,
+  goal: 100,
+  categoryId: "perfume",
+  productId: 4, // ✅ הבושם
+},
 ];
 
 /* ================= Screen ================= */
 export default function GroupsScreen() {
-  const { categoryId } = useLocalSearchParams<{ categoryId: string }>();
+const { categoryId, productId } = useLocalSearchParams<{
+  categoryId?: string;
+  productId?: string;
+}>();
   const router = useRouter();
-
   const [sort, setSort] = useState<"popular" | "priceLow" | "priceHigh">(
     "popular"
   );
+const filteredAndSorted = useMemo(() => {
+  let list = GROUPS;
 
-  const filteredAndSorted = useMemo(() => {
-    let list = GROUPS.filter((g) => g.categoryId === categoryId);
+  // 🟢 סינון לפי מוצר (אם הגיע מ־Join Group)
+  if (productId) {
+    list = list.filter(
+      (g) => g.productId === Number(productId)
+    );
+  }
 
-    if (sort === "priceLow") {
-      list = [...list].sort((a, b) => a.price - b.price);
-    } else if (sort === "priceHigh") {
-      list = [...list].sort((a, b) => b.price - a.price);
-    } else {
-      // popular
-      list = [...list].sort(
-        (a, b) => b.members / b.goal - a.members / a.goal
-      );
-    }
+  // 🟢 סינון לפי קטגוריה (אם קיים)
+  if (categoryId) {
+    list = list.filter(
+      (g) => g.categoryId === categoryId
+    );
+  }
 
-    return list;
-  }, [categoryId, sort]);
+  // 🟢 מיון
+  if (sort === "priceLow") {
+    list = [...list].sort((a, b) => a.price - b.price);
+  } else if (sort === "priceHigh") {
+    list = [...list].sort((a, b) => b.price - a.price);
+  } else {
+    list = [...list].sort(
+      (a, b) => b.members / b.goal - a.members / a.goal
+    );
+  }
+
+  return list;
+}, [categoryId, productId, sort]);
+
 
   return (
     <View style={styles.container}>
       {/* ===== Header ===== */}
       <Text style={styles.title}>Groups</Text>
-      <Text style={styles.subtitle}>{categoryId}</Text>
+      {categoryId && (
+        <Text style={styles.subtitle}>{categoryId}</Text>
+      )}
 
-      {/* ===== Filters (כמו בציור) ===== */}
+      {/* ===== Filters ===== */}
       <View style={styles.filters}>
         <FilterButton
           label="Popular"
@@ -117,7 +153,7 @@ export default function GroupsScreen() {
         keyExtractor={(item) => item.id}
         numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
-        contentContainerStyle={{ gap: 12 }}
+        contentContainerStyle={{ gap: 12, paddingBottom: 80 }}
         renderItem={({ item }) => {
           const progress = Math.round(
             (item.members / item.goal) * 100
@@ -126,9 +162,12 @@ export default function GroupsScreen() {
           return (
             <Pressable
               style={styles.card}
-              onPress={() => router.push(`/product/${item.id}`)}
+              onPress={() => router.push("/groups")}
             >
-              <Image source={{ uri: item.image }} style={styles.image} />
+              <Image
+                source={{ uri: item.image }}
+                style={styles.image}
+              />
 
               <Text style={styles.cardTitle}>{item.title}</Text>
               <Text style={styles.price}>₪{item.price}</Text>
@@ -250,7 +289,7 @@ const styles = StyleSheet.create({
   },
   progressFill: {
     height: "100%",
-    backgroundColor: "#ffffffaa",
+    backgroundColor: "#22c55e",
   },
   meta: {
     color: "#aaa",

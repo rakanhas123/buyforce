@@ -5,7 +5,10 @@ import {
   Image,
   Pressable,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
+import {
+  useLocalSearchParams,
+  useRouter,
+} from "expo-router";
 
 /* =========================
    🔹 טיפוס מוצר
@@ -32,54 +35,47 @@ const PRODUCTS: Product[] = [
     currentMembers: 62,
     goalMembers: 100,
   },
- {
-  id: 2,
-  name: "Gaming Laptop",
-  price: 4999,
-  imageUrl:
-    "https://cdn.pixabay.com/photo/2017/01/22/19/12/laptop-2001346_1280.jpg",
-  currentMembers: 91,
-  goalMembers: 100,
-},
-
-{
-  id: 3,
-  name: "Running Shoes",
-  price: 349,
-  imageUrl:
-    "https://cdn.pixabay.com/photo/2017/08/06/06/42/running-shoes-2581824_1280.jpg",
-  currentMembers: 12,
-  goalMembers: 50,
-},
-{
-  id: 4,
-  name: "Luxury Perfume",
-  price: 249,
-  imageUrl:
-    "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=1200&q=80",
-  currentMembers: 18,
-  goalMembers: 100,
-},
+  {
+    id: 2,
+    name: "Gaming Laptop",
+    price: 4999,
+    imageUrl:
+      "https://cdn.pixabay.com/photo/2017/01/22/19/12/laptop-2001346_1280.jpg",
+    currentMembers: 91,
+    goalMembers: 100,
+  },
+  {
+    id: 3,
+    name: "Running Shoes",
+    price: 349,
+    imageUrl:
+      "https://cdn.pixabay.com/photo/2017/08/06/06/42/running-shoes-2581824_1280.jpg",
+    currentMembers: 12,
+    goalMembers: 50,
+  },
+  {
+    id: 4,
+    name: "Luxury Perfume",
+    price: 249,
+    imageUrl:
+      "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=1200&q=80",
+    currentMembers: 18,
+    goalMembers: 100,
+  },
 ];
 
 export default function ProductScreen() {
   /* =========================
-     🔹 קבלת ID מהניווט
+     🔹 ניווט + פרמטרים
      ========================= */
+  const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  /* =========================
-     🔹 המרה מ־p2 / p3 למספר
-     ========================= */
   const numericId = Number(id?.replace("p", ""));
-
   const product = PRODUCTS.find(
     (p) => p.id === numericId
   );
 
-  /* =========================
-     🔹 טיפול בשגיאה
-     ========================= */
   if (!product || Number.isNaN(numericId)) {
     return (
       <View style={styles.container}>
@@ -87,6 +83,16 @@ export default function ProductScreen() {
       </View>
     );
   }
+  /* =========================
+   🔹 מיפוי מוצר → קבוצה
+   ========================= */
+const PRODUCT_TO_GROUP: Record<number, string> = {
+  1: "g1",
+  2: "g2",
+  3: "g3",
+  4: "g4",
+};
+
 
   const progress = Math.round(
     (product.currentMembers / product.goalMembers) * 100
@@ -95,20 +101,20 @@ export default function ProductScreen() {
   return (
     <View style={styles.container}>
 
-      {/* ✅ תמונת מוצר */}
+      {/* 🖼️ תמונת מוצר */}
       <Image
         source={{ uri: product.imageUrl }}
         style={styles.image}
         resizeMode="cover"
       />
 
-      {/* ✅ שם */}
+      {/* 🏷️ שם */}
       <Text style={styles.title}>{product.name}</Text>
 
-      {/* ✅ מחיר */}
+      {/* 💰 מחיר */}
       <Text style={styles.price}>₪{product.price}</Text>
 
-      {/* ✅ Progress */}
+      {/* 📊 Progress */}
       <View style={styles.progressBar}>
         <View
           style={[
@@ -126,9 +132,20 @@ export default function ProductScreen() {
         <Text style={styles.badge}>🔥 Almost there</Text>
       )}
 
-      <Pressable style={styles.joinButton}>
-        <Text style={styles.joinText}>Join Group</Text>
-      </Pressable>
+      {/* ✅ כפתור Join Group – מעודכן */}
+ <Pressable
+  style={styles.joinButton}
+  onPress={() =>
+    router.push({
+      pathname: "/groups",
+      params: { productId: product.id.toString() },
+    })
+  }
+>
+  <Text style={styles.joinText}>Join Group</Text>
+</Pressable>
+
+
     </View>
   );
 }

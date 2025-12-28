@@ -10,21 +10,38 @@ import {
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 
-/* 🔹 ייבוא המוצרים המשותפים */
+/* 🔹 ייבוא המוצרים */
 import { PRODUCTS, Product } from "../lib/products";
-
 
 export default function HomeScreen() {
   const router = useRouter();
+
+  /* 🔹 state אמיתי למוצרים */
+  const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [search, setSearch] = useState("");
+
+  /* 🔥 Join Group – מוסיף משתתף + שקל */
+  const joinGroup = (id: number) => {
+    setProducts(prev =>
+      prev.map(p =>
+        p.id === id
+          ? {
+              ...p,
+              currentMembers: (p.currentMembers ?? 0) + 1,
+              price: p.price + 1, // ➕ ₪1
+            }
+          : p
+      )
+    );
+  };
 
   /* 🔹 סינון לפי חיפוש */
   const filteredProducts = useMemo(() => {
-    if (!search.trim()) return PRODUCTS;
-    return PRODUCTS.filter((p) =>
+    if (!search.trim()) return products;
+    return products.filter(p =>
       p.name.toLowerCase().includes(search.toLowerCase())
     );
-  }, [search]);
+  }, [search, products]);
 
   const renderItem = ({ item }: { item: Product }) => {
     const progress = Math.min(
@@ -37,16 +54,17 @@ export default function HomeScreen() {
     );
 
     return (
-      <Pressable
-        style={styles.card}
-        onPress={() => router.push(`/product/${item.id}`)}
-      >
-        {item.imageUrl && (
-          <Image
-            source={{ uri: item.imageUrl }}
-            style={styles.image}
-          />
-        )}
+      <View style={styles.card}>
+        <Pressable
+          onPress={() => router.push(`/product/${item.id}`)}
+        >
+          {item.imageUrl && (
+            <Image
+              source={{ uri: item.imageUrl }}
+              style={styles.image}
+            />
+          )}
+        </Pressable>
 
         <View style={styles.cardBody}>
           <Text style={styles.title}>{item.name}</Text>
@@ -64,8 +82,16 @@ export default function HomeScreen() {
               ]}
             />
           </View>
+
+          {/* 🔥 כפתור Join Group */}
+          <Pressable
+            style={styles.joinButton}
+            onPress={() => joinGroup(item.id)}
+          >
+            <Text style={styles.joinText}>Join Group</Text>
+          </Pressable>
         </View>
-      </Pressable>
+      </View>
     );
   };
 
@@ -86,13 +112,9 @@ export default function HomeScreen() {
 
       <FlatList
         data={filteredProducts}
-        keyExtractor={(item) =>
-          item.id.toString()
-        }
+        keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
-        contentContainerStyle={{
-          paddingBottom: 20,
-        }}
+        contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={
           <Text style={styles.empty}>
             אין מוצרים להצגה
@@ -167,6 +189,17 @@ const styles = StyleSheet.create({
     height: "100%",
     backgroundColor: "#22c55e",
     borderRadius: 999,
+  },
+  joinButton: {
+    marginTop: 10,
+    backgroundColor: "#22c55e",
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  joinText: {
+    color: "#000",
+    textAlign: "center",
+    fontWeight: "700",
   },
   empty: {
     color: "#9ca3af",
