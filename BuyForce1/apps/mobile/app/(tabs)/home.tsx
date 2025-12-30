@@ -11,9 +11,11 @@ import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 
 import { PRODUCTS, Product } from "../lib/products";
+import { useWishlist } from "../lib/WishlistContext";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { wishlist, toggleWishlist } = useWishlist();
 
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [search, setSearch] = useState("");
@@ -60,6 +62,17 @@ export default function HomeScreen() {
 
     return (
       <View style={styles.card}>
+        {/* ❤️ Wishlist */}
+        <Pressable
+          style={styles.wishlistBtn}
+          onPress={() => toggleWishlist(item.id)}
+        >
+          <Text style={{ fontSize: 20 }}>
+            {wishlist.includes(item.id) ? "❤️" : "🤍"}
+          </Text>
+        </Pressable>
+
+        {/* Image */}
         <Pressable onPress={() => router.push(`/product/${item.id}`)}>
           {item.imageUrl && (
             <Image
@@ -157,21 +170,16 @@ export default function HomeScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.main}>
-       
-
-        {/* Products */}
-        <FlatList
-          style={{ flex: 1 }}
-          data={filteredProducts}
-          keyExtractor={item => item.id.toString()}
-          renderItem={renderItem}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          ListEmptyComponent={
-            <Text style={styles.empty}>אין מוצרים להצגה</Text>
-          }
-        />
-      </View>
+      {/* Products */}
+      <FlatList
+        data={filteredProducts}
+        keyExtractor={item => item.id.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        ListEmptyComponent={
+          <Text style={styles.empty}>אין מוצרים להצגה</Text>
+        }
+      />
     </View>
   );
 }
@@ -218,30 +226,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "800",
   },
-  main: {
-    flex: 1,
-    flexDirection: "row",
-    gap: 12,
-  },
-  sidebar: {
-    width: 120,
-    backgroundColor: "#111",
-    borderRadius: 16,
-    padding: 12,
-    justifyContent: "space-between",
-    borderWidth: 1,
-    borderColor: "#1f1f1f",
-  },
-  sideItem: {
-    color: "#fff",
-    marginBottom: 12,
-  },
-  viewMore: {
-    backgroundColor: "#2563eb",
-    padding: 8,
-    borderRadius: 10,
-    alignItems: "center",
-  },
   card: {
     backgroundColor: "#111",
     borderRadius: 16,
@@ -249,6 +233,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#1f1f1f",
+  },
+  wishlistBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
   image: {
     width: "100%",

@@ -1,9 +1,11 @@
 import { Tabs } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { WishlistProvider } from "../lib/WishlistContext";
 
 export default function TabsLayout() {
   return (
-    <Tabs
+    <WishlistProvider>
+      <Tabs
       screenOptions={{
         headerStyle: { backgroundColor: "#0b0b0b" },
         headerShown: false,
@@ -69,5 +71,6 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </WishlistProvider>
   );
 }
