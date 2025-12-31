@@ -10,17 +10,18 @@ import {
 import { useRouter } from "expo-router";
 import { useMemo, useState } from "react";
 
-/* 🔹 ייבוא המוצרים */
 import { PRODUCTS, Product } from "../lib/products";
+import { useWishlist } from "../lib/WishlistContext";
 
 export default function HomeScreen() {
   const router = useRouter();
+  const { wishlist, toggleWishlist } = useWishlist();
 
-  /* 🔹 state אמיתי למוצרים */
   const [products, setProducts] = useState<Product[]>(PRODUCTS);
   const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
 
-  /* 🔥 Join Group – מוסיף משתתף + שקל */
+  /* ➕ Join Group */
   const joinGroup = (id: number) => {
     setProducts(prev =>
       prev.map(p =>
@@ -28,20 +29,26 @@ export default function HomeScreen() {
           ? {
               ...p,
               currentMembers: (p.currentMembers ?? 0) + 1,
-              price: p.price + 1, // ➕ ₪1
+              price: p.price + 1,
             }
           : p
       )
     );
   };
 
-  /* 🔹 סינון לפי חיפוש */
+  /* 🔍 סינון לפי חיפוש + קטגוריה */
   const filteredProducts = useMemo(() => {
-    if (!search.trim()) return products;
-    return products.filter(p =>
-      p.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [search, products]);
+    return products.filter(p => {
+      const matchSearch = p.name
+        .toLowerCase()
+        .includes(search.toLowerCase());
+
+      const matchCategory =
+        category === "all" || p.category === category;
+
+      return matchSearch && matchCategory;
+    });
+  }, [search, category, products]);
 
   const renderItem = ({ item }: { item: Product }) => {
     const progress = Math.min(
@@ -55,9 +62,18 @@ export default function HomeScreen() {
 
     return (
       <View style={styles.card}>
+        {/* ❤️ Wishlist */}
         <Pressable
-          onPress={() => router.push(`/product/${item.id}`)}
+          style={styles.wishlistBtn}
+          onPress={() => toggleWishlist(item.id)}
         >
+          <Text style={{ fontSize: 20 }}>
+            {wishlist.includes(item.id) ? "❤️" : "🤍"}
+          </Text>
+        </Pressable>
+
+        {/* Image */}
+        <Pressable onPress={() => router.push(`/product/${item.id}`)}>
           {item.imageUrl && (
             <Image
               source={{ uri: item.imageUrl }}
@@ -83,7 +99,6 @@ export default function HomeScreen() {
             />
           </View>
 
-          {/* 🔥 כפתור Join Group */}
           <Pressable
             style={styles.joinButton}
             onPress={() => joinGroup(item.id)}
@@ -98,9 +113,7 @@ export default function HomeScreen() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>BuyForce</Text>
-      <Text style={styles.subHeader}>
-        קנייה קבוצתית חכמה
-      </Text>
+      <Text style={styles.subHeader}>קנייה קבוצתית חכמה</Text>
 
       <TextInput
         placeholder="חיפוש מוצר..."
@@ -110,15 +123,61 @@ export default function HomeScreen() {
         style={styles.search}
       />
 
+      {/* 🔹 קטגוריות */}
+      <View style={styles.tabs}>
+        <Pressable onPress={() => setCategory("all")}>
+          <Text
+            style={[
+              styles.tab,
+              category === "all" && styles.activeTab,
+            ]}
+          >
+            הכול
+          </Text>
+        </Pressable>
+
+        <Pressable onPress={() => setCategory("electronics")}>
+          <Text
+            style={[
+              styles.tab,
+              category === "electronics" && styles.activeTab,
+            ]}
+          >
+            אלקטרוניקה
+          </Text>
+        </Pressable>
+
+        <Pressable onPress={() => setCategory("mobile")}>
+          <Text
+            style={[
+              styles.tab,
+              category === "mobile" && styles.activeTab,
+            ]}
+          >
+            סלולר
+          </Text>
+        </Pressable>
+
+        <Pressable onPress={() => setCategory("computer")}>
+          <Text
+            style={[
+              styles.tab,
+              category === "computer" && styles.activeTab,
+            ]}
+          >
+            מחשבים
+          </Text>
+        </Pressable>
+      </View>
+
+      {/* Products */}
       <FlatList
         data={filteredProducts}
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={
-          <Text style={styles.empty}>
-            אין מוצרים להצגה
-          </Text>
+          <Text style={styles.empty}>אין מוצרים להצגה</Text>
         }
       />
     </View>
@@ -139,16 +198,33 @@ const styles = StyleSheet.create({
   },
   subHeader: {
     color: "#9ca3af",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   search: {
     backgroundColor: "#141414",
     borderRadius: 12,
     padding: 12,
     color: "#fff",
-    marginBottom: 16,
+    marginBottom: 12,
     borderWidth: 1,
     borderColor: "#1f1f1f",
+  },
+  tabs: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 12,
+  },
+  tab: {
+    color: "#e5e7eb",
+    backgroundColor: "#1f2933",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  activeTab: {
+    backgroundColor: "#2563eb",
+    color: "#fff",
+    fontWeight: "800",
   },
   card: {
     backgroundColor: "#111",
@@ -157,6 +233,12 @@ const styles = StyleSheet.create({
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "#1f1f1f",
+  },
+  wishlistBtn: {
+    position: "absolute",
+    top: 10,
+    right: 10,
+    zIndex: 10,
   },
   image: {
     width: "100%",

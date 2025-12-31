@@ -4,13 +4,11 @@ import {
   StyleSheet,
   Image,
   Pressable,
-  Modal,
 } from "react-native";
 import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
-import { useState } from "react";
 
 /* =========================
    🔹 טיפוס מוצר
@@ -66,25 +64,17 @@ const PRODUCTS: Product[] = [
   },
 ];
 
-/* =========================
-   🔹 Product → Group mapping
-   ========================= */
-const PRODUCT_TO_GROUP: Record<number, string> = {
-  1: "g1",
-  2: "g2",
-  3: "g3",
-  4: "g4",
-};
-
 export default function ProductScreen() {
+  /* =========================
+     🔹 ניווט + פרמטרים
+     ========================= */
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
   const numericId = Number(id?.replace("p", ""));
-  const product = PRODUCTS.find((p) => p.id === numericId);
-
-  const [showPayment, setShowPayment] = useState(false);
-  const [joined, setJoined] = useState(false);
+  const product = PRODUCTS.find(
+    (p) => p.id === numericId
+  );
 
   if (!product || Number.isNaN(numericId)) {
     return (
@@ -93,29 +83,24 @@ export default function ProductScreen() {
       </View>
     );
   }
+  /* =========================
+   🔹 מיפוי מוצר → קבוצה
+   ========================= */
+const PRODUCT_TO_GROUP: Record<number, string> = {
+  1: "g1",
+  2: "g2",
+  3: "g3",
+  4: "g4",
+};
+
 
   const progress = Math.round(
     (product.currentMembers / product.goalMembers) * 100
   );
 
-  const handlePayAndJoin = () => {
-    // 🔜 כאן בעתיד: Backend / Stripe
-    console.log("Paid 1₪ for group:", PRODUCT_TO_GROUP[product.id]);
-
-    setJoined(true);
-    setShowPayment(false);
-
-    router.push({
-      pathname: "/groups",
-      params: {
-        groupId: PRODUCT_TO_GROUP[product.id],
-        productId: product.id.toString(),
-      },
-    });
-  };
-
   return (
     <View style={styles.container}>
+
       {/* 🖼️ תמונת מוצר */}
       <Image
         source={{ uri: product.imageUrl }}
@@ -147,42 +132,20 @@ export default function ProductScreen() {
         <Text style={styles.badge}>🔥 Almost there</Text>
       )}
 
-      {/* ✅ Join Group – עם תשלום */}
-      <Pressable
-        style={[
-          styles.joinButton,
-          joined && { backgroundColor: "#16a34a" },
-        ]}
-        onPress={() => setShowPayment(true)}
-        disabled={joined}
-      >
-        <Text style={styles.joinText}>
-          {joined ? "Joined ✓" : "Join Group – 1₪"}
-        </Text>
-      </Pressable>
+      {/* ✅ כפתור Join Group – מעודכן */}
+ <Pressable
+  style={styles.joinButton}
+  onPress={() =>
+    router.push({
+      pathname: "/groups",
+      params: { productId: product.id.toString() },
+    })
+  }
+>
+  <Text style={styles.joinText}>Join Group</Text>
+</Pressable>
 
-      {/* 💳 Payment Modal */}
-      <Modal visible={showPayment} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Join Group</Text>
-            <Text style={styles.modalText}>
-              Joining this group costs 1₪
-            </Text>
 
-            <Pressable
-              style={styles.payBtn}
-              onPress={handlePayAndJoin}
-            >
-              <Text style={styles.payText}>Pay 1₪</Text>
-            </Pressable>
-
-            <Pressable onPress={() => setShowPayment(false)}>
-              <Text style={styles.cancel}>Cancel</Text>
-            </Pressable>
-          </View>
-        </View>
-      </Modal>
     </View>
   );
 }
@@ -252,43 +215,6 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 17,
     fontWeight: "700",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modal: {
-    backgroundColor: "#1a1a1a",
-    padding: 20,
-    borderRadius: 14,
-    width: 280,
-    alignItems: "center",
-  },
-  modalTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  modalText: {
-    color: "#ccc",
-    marginBottom: 16,
-  },
-  payBtn: {
-    backgroundColor: "#22c55e",
-    paddingVertical: 10,
-    paddingHorizontal: 26,
-    borderRadius: 20,
-    marginBottom: 12,
-  },
-  payText: {
-    color: "white",
-    fontWeight: "700",
-  },
-  cancel: {
-    color: "#f87171",
   },
   error: {
     color: "white",
