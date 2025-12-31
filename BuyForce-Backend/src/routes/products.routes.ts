@@ -1,72 +1,31 @@
-import { Router, Request, Response } from "express";
-import db from "../db/db";
+import { Router } from "express";
+import { pool } from "../db/db";
 
 const router = Router();
 
 /**
  * GET /v1/products
- * Filters, sorting, search (NO categories)
+ * Returns products from DB if table exists, otherwise returns demo data
  */
-router.get("/", async (req: Request, res: Response) => {
+router.get("/", async (_req, res) => {
   try {
-    const { minPrice, maxPrice, sort, search } = req.query;
-
-    let query = `
-      SELECT 
-        p.*,
-        (SELECT image_url
-         FROM images
-         WHERE product_id = p.id AND is_main = true
-         LIMIT 1) AS main_image
-      FROM products p
-      WHERE 1=1
-    `;
-
-    if (minPrice) query += ` AND p.price >= ${Number(minPrice)}`;
-    if (maxPrice) query += ` AND p.price <= ${Number(maxPrice)}`;
-    if (search)   query += ` AND p.name ILIKE '%${search}%'`;
-
-    if (sort === "price_asc")  query += ` ORDER BY p.price ASC`;
-    if (sort === "price_desc") query += ` ORDER BY p.price DESC`;
-    if (sort === "newest")     query += ` ORDER BY p.created_at DESC`;
-
-    const result = await db.query(query);
-    res.json(result.rows);
-
+    // try DB table "products"
+    const result = await pool.query('SELECT * FROM products ORDER BY id DESC LIMIT 50');
+    return res.json({ source: "db", items: result.rows });
   } catch (err: any) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-/**
- * GET /v1/products/:id
- */
-router.get("/:id", async (req: Request, res: Response) => {
-  try {
-    const { id } = req.params;
-
-    const query = `
-      SELECT 
-        p.*,
-        (SELECT image_url
-         FROM images
-         WHERE product_id = p.id AND is_main = true
-         LIMIT 1) AS main_image
-      FROM products p
-      WHERE p.id = $1
-      LIMIT 1
-    `;
-
-    const result = await db.query(query, [id]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: "Product not found" });
+    // If DB works but table missing, still return something usable
+    const msg = err?.message ?? "";
+    if (msg.toLowerCase().includes("relation") && msg.toLowerCase().includes("does not exist")) {
+      return res.json({
+        source: "fallback",
+        items: [
+          { id: 1, name: "Demo Product", price: 10 },
+          { id: 2, name: "Another Product", price: 25 },
+        ],
+        note: "DB connected but 'products' table not found. Create it to use real data.",
+      });
     }
-
-    res.json(result.rows[0]);
-
-  } catch (err: any) {
-    res.status(500).json({ error: err.message });
+    return res.status(500).json({ error: msg });
   }
 });
 

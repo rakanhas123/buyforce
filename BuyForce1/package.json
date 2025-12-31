@@ -11,11 +11,13 @@
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@stripe/stripe-js": "^8.6.0",
     "expo": "latest",
     "expo-router": "latest",
     "react": "latest",
     "react-native": "latest",
-    "react-native-web": "^0.21.2"
+    "react-native-web": "^0.21.2",
+    "stripe": "^20.1.0"
   },
   "devDependencies": {
     "@types/react": "~19.1.10",

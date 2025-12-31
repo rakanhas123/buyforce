@@ -1,37 +1,34 @@
+import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
-import { Request, Response, NextFunction } from "express";
 
-const JWT_SECRET = process.env.JWT_SECRET || "secret";
+export type AuthUser = { id: string };
 
-export interface AuthRequest extends Request {
-  user?: {
-    id: string;
-    email: string;
-  };
-}
+export type AuthRequest = Request & { user?: AuthUser };
 
-export const authMiddleware = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-) => {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "No token provided" });
-  }
-
-  const token = authHeader.split(" ")[1];
-
+export function authMiddleware(req: AuthRequest, res: Response, next: NextFunction) {
   try {
-    const decoded = jwt.verify(token, JWT_SECRET) as {
-      id: string;
-      email: string;
-    };
+    const header = req.headers.authorization;
+    if (!header || !header.startsWith("Bearer ")) {
+      return res.status(401).json({ error: "Missing or invalid Authorization header" });
+    }
 
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.status(401).json({ error: "Invalid token" });
+    const token = header.substring("Bearer ".length).trim();
+    const secret = process.env.JWT_SECRET;
+
+    if (!secret) {
+      return res.status(500).json({ error: "Server misconfigured: missing JWT_SECRET" });
+    }
+
+    const decoded = jwt.verify(token, secret) as jwt.JwtPayload;
+
+    const userId = decoded?.sub;
+    if (!userId || typeof userId !== "string") {
+      return res.status(401).json({ error: "Invalid token payload" });
+    }
+
+    req.user = { id: userId };
+    return next();
+  } catch {
+    return res.status(401).json({ error: "Invalid or expired token" });
   }
-};
+}

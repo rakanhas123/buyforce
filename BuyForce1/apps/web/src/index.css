@@ -1,0 +1,131 @@
+:root {
+  font-family: Inter, system-ui, Arial, sans-serif;
+  color: #111;
+  background: #fafafa;
+}
+
+* { box-sizing: border-box; }
+
+a { color: inherit; text-decoration: none; }
+
+.container {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 18px 16px;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+}
+
+.topbar-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 900;
+}
+
+.badge {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  border: 1px solid #111;
+  display: grid;
+  place-items: center;
+  font-weight: 900;
+}
+
+.nav {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #222;
+  background: #111;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn.secondary {
+  background: #fff;
+  color: #111;
+  border: 1px solid #ddd;
+  font-weight: 800;
+}
+
+.btn.danger {
+  background: #c0392b;
+  border-color: #c0392b;
+}
+
+.input {
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+  outline: none;
+  width: 100%;
+}
+
+.grid { display: grid; gap: 12px; }
+
+.cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+}
+
+.card {
+  background: #fff;
+  border: 1px solid #e8e8e8;
+  border-radius: 14px;
+  padding: 14px;
+  box-shadow: 0 1px 8px rgba(0,0,0,0.05);
+}
+
+.muted { opacity: 0.75; font-size: 13px; }
+
+.hr { border-top: 1px solid #eee; margin: 12px 0; }
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid #eee;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  background: #fafafa;
+}
+
+.progress {
+  height: 10px;
+  border: 1px solid #333;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.progress > div {
+  height: 100%;
+  background: #2ecc71;
+}

@@ -1,6 +1,6 @@
 import express from "express";
-import pool from "../db/db";
-import { authMiddleware, AuthRequest } from "../middleware/auth";
+import pool from "../db";
+import { authMiddleware, type AuthRequest } from "../middleware/auth.middleware";
 import stripe from "../lib/stripe";
 
 const router = express.Router();
@@ -88,13 +88,9 @@ router.patch("/close/:id", async (req, res) => {
    JOIN GROUP (JWT + Stripe Authorization)
    POST /api/groups/:id/join
 ========================================== */
-router.post(
-  "/:id/join",
-  authMiddleware,
-  async (req: AuthRequest, res) => {
-    const groupId = req.params.id;
-    const userId = req.user!.id;
-
+router.post("/:id/join", authMiddleware, async (req, res) => {
+  const groupId = req.params.id;
+  const userId = (req as AuthRequest).user!.id;
     try {
       // בדיקה אם כבר הצטרף
       const exists = await pool.query(
@@ -155,12 +151,10 @@ router.post(
    PAY FOR PRODUCT (JWT + Stripe Capture)
    POST /api/groups/:id/pay-product
 ========================================== */
-router.post(
-  "/:id/pay-product",
-  authMiddleware,
-  async (req: AuthRequest, res) => {
-    const groupId = req.params.id;
-    const userId = req.user!.id;
+router.post("/:id/pay-product", authMiddleware, async (req, res) => {
+  const groupId = req.params.id;
+  const userId = (req as AuthRequest).user!.id;
+
 
     try {
       // בדיקה שהקבוצה סגורה
