@@ -8,6 +8,7 @@ import {
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useMemo, useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
 
 /* ================= Types ================= */
 type Group = {
@@ -27,7 +28,7 @@ const GROUPS: Group[] = [
     id: "g1",
     title: "Apple AirPods Pro Group",
     price: 899,
-    image: "...",
+    image: "https://images.unsplash.com/photo-1588156979435-1d26a06f5b26?auto=format&fit=crop&w=800&q=80",
     members: 62,
     goal: 100,
     categoryId: "accessories",
@@ -35,13 +36,13 @@ const GROUPS: Group[] = [
   },
   {
     id: "g2",
-    title: "Running Shoes Group",
-    price: 349,
-    image: "...",
+    title: "Samsung Galaxy Watch Group",
+    price: 699,
+    image: "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=800&q=80",
     members: 12,
     goal: 50,
-    categoryId: "sports",
-    productId: 3, // 🔗 קשור לנעליים
+    categoryId: "electronics",
+    productId: 3, // 🔗 קשור ל-Samsung Galaxy Watch
   },
   {
     id: "g3",
@@ -56,26 +57,37 @@ const GROUPS: Group[] = [
   },
   {
     id: "g4",
-    title: "Smartphone Pro",
-    price: 3499,
+    title: "Running Shoes Group",
+    price: 349,
     image:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=60",
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
     members: 91,
     goal: 100,
-    categoryId: "mobile",
+    categoryId: "sports",
     productId: 2,
   },
   {
-  id: "g5",
-  title: "Luxury Perfume Group",
-  price: 249,
-  image:
-    "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=800&q=60",
-  members: 18,
-  goal: 100,
-  categoryId: "perfume",
-  productId: 4, // ✅ הבושם
-},
+    id: "g5",
+    title: "MacBook Pro M3 Group",
+    price: 8001,
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
+    members: 18,
+    goal: 100,
+    categoryId: "electronics",
+    productId: 4, // ✅ MacBook Pro M3
+  },
+  {
+    id: "g6",
+    title: "Gaming Pro Laptop Group",
+    price: 5499,
+    image:
+      "https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?auto=format&fit=crop&w=800&q=80",
+    members: 12,
+    goal: 50,
+    categoryId: "electronics",
+    productId: 5, // ✅ Gaming Pro Laptop
+  },
 ];
 
 /* ================= Screen ================= */
@@ -120,10 +132,23 @@ const filteredAndSorted = useMemo(() => {
 }, [categoryId, productId, sort]);
 
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/home");
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* ===== Header ===== */}
-      <Text style={styles.title}>Groups</Text>
+      <View style={styles.header}>
+        <Pressable style={styles.backButton} onPress={handleBack}>
+          <Ionicons name="arrow-back" size={26} color="white" />
+        </Pressable>
+        <Text style={styles.title}>Groups</Text>
+      </View>
       {categoryId && (
         <Text style={styles.subtitle}>{categoryId}</Text>
       )}
@@ -162,7 +187,7 @@ const filteredAndSorted = useMemo(() => {
           return (
             <Pressable
               style={styles.card}
-              onPress={() => router.push("/groups")}
+              onPress={() => router.push(`/product/${item.productId}`)}
             >
               <Image
                 source={{ uri: item.image }}
@@ -228,6 +253,17 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: "#0b0b0f",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 4,
+  },
+  backButton: {
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: 20,
+    padding: 6,
   },
   title: {
     fontSize: 26,

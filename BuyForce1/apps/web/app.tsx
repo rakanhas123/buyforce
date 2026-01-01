@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { useAuth } from "./lib/AuthContext";
+import { useAuth } from "../admin-web/src/lib/AuthContext";
 
 export default function App() {
   const { user, logout } = useAuth();
