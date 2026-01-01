@@ -15,7 +15,12 @@ import adminUsersRoutes from "./routes/admin.users.routes";
 import adminWishlistRoutes from "./routes/admin.wishlist.routes";
 const app = express();
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:5174"],
+    credentials: true, // keep only if you use cookies/auth
+  })
+);
 
 // IMPORTANT: Stripe webhook routes typically require raw body,
 // but since we don’t know your Stripe setup now, keep JSON global.
