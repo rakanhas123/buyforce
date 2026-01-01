@@ -5,8 +5,10 @@ import {
   StyleSheet,
   Pressable,
   Image,
+  SafeAreaView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
 
 /* ===== טיפוס ===== */
 type Product = {
@@ -24,32 +26,48 @@ const PRODUCTS: Product[] = [
     title: "AirPods Pro",
     price: 899,
     image:
-      "https://images.unsplash.com/photo-1588156979435-1d26a06f5b26",
+      "https://images.unsplash.com/photo-1588156979435-1d26a06f5b26?auto=format&fit=crop&w=800&q=80",
     categoryId: "electronics",
   },
   {
     id: "p2",
-    title: "Gaming Laptop",
-    price: 4999,
+    title: "Running Shoes",
+    price: 349,
     image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
+      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
+    categoryId: "fashion",
+  },
+  {
+    id: "p6",
+    title: "MacBook Pro M3",
+    price: 8001,
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
     categoryId: "electronics",
   },
   {
     id: "p3",
-    title: "Running Shoes",
-    price: 349,
+    title: "Samsung Galaxy Watch",
+    price: 699,
     image:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff",
-    categoryId: "fashion",
+      "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=800&q=80",
+    categoryId: "electronics",
   },
   {
     id: "p4",
-    title: "Luxury Perfume",
-    price: 249,
+    title: "MacBook Pro M3",
+    price: 8001,
     image:
-      "https://images.unsplash.com/photo-1594035910387-fea47794261f",
-    categoryId: "beauty",
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
+    categoryId: "electronics",
+  },
+  {
+    id: "p5",
+    title: "Gaming Pro Laptop",
+    price: 5499,
+    image:
+      "https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?auto=format&fit=crop&w=800&q=80",
+    categoryId: "electronics",
   },
 ];
 
@@ -62,8 +80,28 @@ export default function ProductsScreen() {
     (p) => p.categoryId === categoryId
   );
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(tabs)/home");
+    }
+  };
+
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      {/* ⬅️ חץ חזרה */}
+      <Pressable
+        style={styles.backButton}
+        onPress={handleBack}
+      >
+        <Ionicons
+          name="arrow-back"
+          size={26}
+          color="white"
+        />
+      </Pressable>
+
       <Text style={styles.title}>Products</Text>
       <Text style={styles.subtitle}>
         Category: {categoryId}
@@ -95,7 +133,7 @@ export default function ProductsScreen() {
           No products in this category
         </Text>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 
@@ -105,6 +143,16 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: "#0b0b0f",
+  },
+
+  backButton: {
+    position: "absolute",
+    top: 8,
+    left: 16,
+    zIndex: 20,
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: 20,
+    padding: 6,
   },
 
   title: {
