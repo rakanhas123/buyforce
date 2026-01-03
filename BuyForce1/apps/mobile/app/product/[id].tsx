@@ -82,6 +82,15 @@ const PRODUCTS: Product[] = [
     currentMembers: 10,
     goalMembers: 100,
   },
+  {
+    id: 101,
+    name: "Chanel No. 5",
+    price: 450,
+    imageUrl:
+      "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=800&q=80",
+    currentMembers: 45,
+    goalMembers: 100,
+  },
 ];
 
 export default function ProductScreen() {

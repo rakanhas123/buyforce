@@ -54,14 +54,6 @@ const PRODUCTS: Product[] = [
     categoryId: "electronics",
   },
   {
-    id: "p4",
-    title: "MacBook Pro M3",
-    price: 8001,
-    image:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
-    categoryId: "electronics",
-  },
-  {
     id: "p5",
     title: "Gaming Pro Laptop",
     price: 5499,
@@ -69,6 +61,14 @@ const PRODUCTS: Product[] = [
       "https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?auto=format&fit=crop&w=800&q=80",
     categoryId: "electronics",
   },
+  {
+    id: "b1",
+    title: "Chanel No. 5",
+    price: 450,
+    image:
+      "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=800&q=80",
+    categoryId: "beauty",
+  }
 ];
 
 /* ===== Screen ===== */
@@ -114,17 +114,31 @@ export default function ProductsScreen() {
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
         renderItem={({ item }) => (
-          <Pressable
-            style={({ pressed }) => [
-              styles.card,
-              pressed && styles.cardPressed,
-            ]}
-            onPress={() => router.push(`/product/${item.id}`)}
-          >
+          <View style={styles.card}>
             <Image source={{ uri: item.image }} style={styles.image} />
             <Text style={styles.cardTitle}>{item.title}</Text>
             <Text style={styles.price}>₪{item.price}</Text>
-          </Pressable>
+            
+            <Pressable
+              style={({ pressed }) => [
+                styles.viewButton,
+                pressed && styles.cardPressed,
+              ]}
+              onPress={() => {
+                if (categoryId === "beauty") {
+                  const productId = item.id === "b1" ? "101" : 
+                                   item.id === "b2" ? "102" : 
+                                   item.id === "b3" ? "103" : 
+                                   item.id === "b4" ? "104" : item.id;
+                  router.push(`/product/${productId}`);
+                } else {
+                  router.push(`/product/${item.id}`);
+                }
+              }}
+            >
+              <Text style={styles.viewButtonText}>View Details</Text>
+            </Pressable>
+          </View>
         )}
       />
 
@@ -207,6 +221,42 @@ const styles = StyleSheet.create({
   price: {
     color: "#aaa",
     fontSize: 13,
+    marginBottom: 8,
+  },
+
+  joinButton: {
+    backgroundColor: "#4CAF50",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 4,
+  },
+
+  joinButtonPressed: {
+    backgroundColor: "#45a049",
+    transform: [{ scale: 0.98 }],
+  },
+
+  joinButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "700",
+  },
+
+  viewButton: {
+    backgroundColor: "#2196F3",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 4,
+  },
+
+  viewButtonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
 
   empty: {

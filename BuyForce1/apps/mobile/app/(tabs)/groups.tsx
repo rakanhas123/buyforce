@@ -88,6 +88,61 @@ const GROUPS: Group[] = [
     categoryId: "electronics",
     productId: 5, // ✅ Gaming Pro Laptop
   },
+  {
+    id: "g7",
+    title: "Chanel No. 5 Group",
+    price: 450,
+    image:
+      "https://images.unsplash.com/photo-1541643600914-78b084683601?auto=format&fit=crop&w=800&q=80",
+    members: 45,
+    goal: 100,
+    categoryId: "beauty",
+    productId: 101, // 🔗 Chanel No. 5 (b1)
+  },
+  {
+    id: "g8",
+    title: "Dior Sauvage Group",
+    price: 380,
+    image:
+      "https://images.unsplash.com/photo-1588405748880-12d1d2a59926?auto=format&fit=crop&w=800&q=80",
+    members: 67,
+    goal: 100,
+    categoryId: "beauty",
+    productId: 102, // 🔗 Dior Sauvage (b2)
+  },
+  {
+    id: "g9",
+    title: "Tom Ford Black Orchid Group",
+    price: 520,
+    image:
+      "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?auto=format&fit=crop&w=800&q=80",
+    members: 23,
+    goal: 50,
+    categoryId: "beauty",
+    productId: 103, // 🔗 Tom Ford (b3)
+  },
+  {
+    id: "g10",
+    title: "Gucci Bloom Group",
+    price: 420,
+    image:
+      "https://images.unsplash.com/photo-1585386959984-a4155224a1ad?auto=format&fit=crop&w=800&q=80",
+    members: 58,
+    goal: 100,
+    categoryId: "beauty",
+    productId: 104, // 🔗 Gucci Bloom (b4)
+  },
+  {
+    id: "g11",
+    title: "MacBook Pro M3 ",
+    price: 8001,
+    image:
+      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
+    members: 42,
+    goal: 100,
+    categoryId: "electronics",
+    productId: 6, // 🔗 MacBook Pro M3 (p6)
+  },
 ];
 
 /* ================= Screen ================= */
@@ -133,11 +188,7 @@ const filteredAndSorted = useMemo(() => {
 
 
   const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/(tabs)/home");
-    }
+    router.push("/(tabs)/categories");
   };
 
   return (
