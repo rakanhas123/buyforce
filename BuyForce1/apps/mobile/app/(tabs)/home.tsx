@@ -6,59 +6,63 @@ import {
   Image,
   Pressable,
   TextInput,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 
-import { PRODUCTS, Product } from "../lib/products";
+import { productsApi, Product } from "../lib/api";
 import { useWishlist } from "../lib/WishlistContext";
 
 export default function HomeScreen() {
   const router = useRouter();
   const { wishlist, toggleWishlist } = useWishlist();
 
-  const [products, setProducts] = useState<Product[]>(PRODUCTS);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
 
-  /* ➕ Join Group */
-  const joinGroup = (id: number) => {
-    setProducts(prev =>
-      prev.map(p =>
-        p.id === id
-          ? {
-              ...p,
-              currentMembers: (p.currentMembers ?? 0) + 1,
-              price: p.price + 1,
-            }
-          : p
-      )
-    );
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      const data = await productsApi.getAll();
+      setProducts(data);
+    } catch (error) {
+      console.error("Failed to load products:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
   };
 
-  /* 🔍 סינון לפי חיפוש + קטגוריה */
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadProducts();
+  };
+
+  /* 🔍 סינון לפי חיפוש */
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
       const matchSearch = p.name
         .toLowerCase()
         .includes(search.toLowerCase());
 
-      const matchCategory =
-        category === "all" || p.category === category;
-
-      return matchSearch && matchCategory;
+      return matchSearch;
     });
-  }, [search, category, products]);
+  }, [search, products]);
 
   const renderItem = ({ item }: { item: Product }) => {
-    const progress = Math.min(
-      100,
-      Math.round(
-        ((item.currentMembers ?? 0) /
-          (item.goalMembers ?? 100)) *
-          100
-      )
-    );
+    const mainImage = item.images?.find(img => img.is_main)?.image_url || 
+                      item.images?.[0]?.image_url || 
+                      "https://via.placeholder.com/300";
+    
+    const price = parseFloat(item.price?.toString() || '0');
 
     return (
       <View style={styles.card}>
@@ -74,41 +78,48 @@ export default function HomeScreen() {
 
         {/* Image */}
         <Pressable onPress={() => router.push(`/product/${item.id}`)}>
-          {item.imageUrl && (
-            <Image
-              source={{ uri: item.imageUrl }}
-              style={styles.image}
-            />
-          )}
+          <Image
+            source={{ uri: mainImage }}
+            style={styles.image}
+          />
         </Pressable>
 
         <View style={styles.cardBody}>
           <Text style={styles.title}>{item.name}</Text>
-          <Text style={styles.price}>₪{item.price}</Text>
+          <Text style={styles.price}>₪{price.toFixed(2)}</Text>
+          
+          {item.description && (
+            <Text style={styles.description} numberOfLines={2}>
+              {item.description}
+            </Text>
+          )}
 
-          <Text style={styles.progressText}>
-            {item.currentMembers}/{item.goalMembers} מצטרפים
+          <Text style={styles.stock}>
+            {item.stock > 0 ? `במלאי: ${item.stock}` : "אזל מהמלאי"}
           </Text>
 
-          <View style={styles.progressBg}>
-            <View
-              style={[
-                styles.progressFill,
-                { width: `${progress}%` },
-              ]}
-            />
-          </View>
-
           <Pressable
-            style={styles.joinButton}
-            onPress={() => joinGroup(item.id)}
+            style={[styles.joinButton, item.stock === 0 && styles.joinButtonDisabled]}
+            onPress={() => router.push(`/product/${item.id}`)}
+            disabled={item.stock === 0}
           >
-            <Text style={styles.joinText}>Join Group</Text>
+            <Text style={styles.joinText}>
+              {item.stock > 0 ? "צפה במוצר" : "אזל מהמלאי"}
+            </Text>
           </Pressable>
         </View>
       </View>
     );
   };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>טוען מוצרים...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
@@ -176,6 +187,13 @@ export default function HomeScreen() {
         keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
         contentContainerStyle={{ paddingBottom: 20 }}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor="#fff"
+          />
+        }
         ListEmptyComponent={
           <Text style={styles.empty}>אין מוצרים להצגה</Text>
         }
@@ -190,6 +208,15 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#0b0b0b",
     padding: 16,
+  },
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#9ca3af",
+    marginTop: 12,
+    fontSize: 16,
   },
   header: {
     color: "#fff",
@@ -251,32 +278,33 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
     fontWeight: "700",
-  },
-  price: {
-    color: "#3b82f6",
-    fontWeight: "700",
-    marginVertical: 4,
-  },
-  progressText: {
-    color: "#9ca3af",
-    fontSize: 12,
     marginBottom: 4,
   },
-  progressBg: {
-    height: 8,
-    backgroundColor: "#1f1f1f",
-    borderRadius: 999,
+  price: {
+    color: "#22c55e",
+    fontSize: 18,
+    fontWeight: "800",
+    marginBottom: 8,
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#22c55e",
-    borderRadius: 999,
+  description: {
+    color: "#9ca3af",
+    fontSize: 13,
+    marginTop: 4,
+  },
+  stock: {
+    color: "#10b981",
+    fontSize: 12,
+    marginTop: 8,
+    fontWeight: "600",
   },
   joinButton: {
     marginTop: 10,
     backgroundColor: "#22c55e",
     paddingVertical: 10,
     borderRadius: 10,
+  },
+  joinButtonDisabled: {
+    backgroundColor: "#4b5563",
   },
   joinText: {
     color: "#000",

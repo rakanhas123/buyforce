@@ -6,38 +6,52 @@ import productsRoutes from "./routes/products.routes";
 import groupsRoutes from "./routes/groups.routes";
 import paymentsRoutes from "./routes/payment.routes";
 import authRoutes from "./routes/auth.routes";
-import { dbHealthCheck } from "./db/db";
-import { webhookHandler } from "./routes/stripe-webhook"
-import authRouter from "./routes/auth.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
+
 import adminGroupsRoutes from "./routes/admin.groups.routes";
 import adminUsersRoutes from "./routes/admin.users.routes";
 import adminWishlistRoutes from "./routes/admin.wishlist.routes";
+
+import { dbHealthCheck } from "./db/db";
+import { webhookHandler } from "./routes/stripe-webhook";
+
 const app = express();
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
-
-// IMPORTANT: Stripe webhook routes typically require raw body,
-// but since we don’t know your Stripe setup now, keep JSON global.
-// If you later add Stripe webhooks, handle that specific route with express.raw().
-app.post("/v1/payments/webhook", express.raw({ type: "application/json" }), webhookHandler);
+/* ===============================
+   Middleware
+================================ */
+app.use(cors({ 
+  origin: true, // Allow all origins in development
+  credentials: true 
+}));
 app.use(express.json());
 
-/* =========================================
-   API Routes (v1)
-========================================= */
-app.use("/v1/admin/groups", adminGroupsRoutes);
-app.use("/v1/admin/users", adminUsersRoutes);
-app.use("/v1/admin/wishlist", adminWishlistRoutes);
-app.use("/v1/products", productsRoutes);
+/* ===============================
+   Stripe Webhook (RAW BODY)
+================================ */
+app.post(
+  "/v1/payments/webhook",
+  express.raw({ type: "application/json" }),
+  webhookHandler
+);
+
+/* ===============================
+   API Routes
+================================ */
+app.use("/api/products", productsRoutes);
+
 app.use("/v1/groups", groupsRoutes);
 app.use("/v1/payments", paymentsRoutes);
 app.use("/v1/auth", authRoutes);
-app.use("/v1/auth", authRouter);
 app.use("/v1/wishlist", wishlistRoutes);
-/* =========================================
-   Health
-========================================= */
+
+app.use("/v1/admin/groups", adminGroupsRoutes);
+app.use("/v1/admin/users", adminUsersRoutes);
+app.use("/v1/admin/wishlist", adminWishlistRoutes);
+
+/* ===============================
+   Health Check
+================================ */
 app.get("/v1/health", async (_req, res) => {
   try {
     const dbOk = await dbHealthCheck();
@@ -58,7 +72,12 @@ app.get("/v1/health", async (_req, res) => {
   }
 });
 
+/* ===============================
+   Server Start
+================================ */
 const port = Number(process.env.PORT || 3000);
-app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}`);
+const host = process.env.HOST || '0.0.0.0';
+app.listen(port, host, () => {
+  console.log(`✅ Server running on http://${host}:${port}`);
+  console.log(`📱 For mobile device, use your computer's IP address`);
 });

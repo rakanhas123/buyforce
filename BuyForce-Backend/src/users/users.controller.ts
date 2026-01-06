@@ -11,7 +11,7 @@ export class UsersController {
   @Get('me')
   async getMe(@Req() req: any) {
     const user = await this.usersService.findById(req.user.sub);
-    const { passwordHash, ...safe } = user;
+    const { password, ...safe } = user;
     return safe;
   }
 
@@ -19,7 +19,7 @@ export class UsersController {
   @Patch('me')
   async updateMe(@Req() req: any, @Body() dto: UpdateUserDto) {
     const user = await this.usersService.updateUser(req.user.sub, dto);
-    const { passwordHash, ...safe } = user;
+    const { password, ...safe } = user;
     return safe;
   }
 }

@@ -1,15 +1,26 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
+import { useAuth } from "../lib/AuthContext";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register, isAuthenticated, isLoading } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
+
+  // Auto-navigate when authentication succeeds
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      console.log('✅ Registration successful, navigating to home...');
+      router.replace("/(tabs)/home");
+    }
+  }, [isAuthenticated, isLoading]);
 
   const handleSubmit = async () => {
     if (password !== confirmPassword) {
@@ -17,32 +28,19 @@ export default function RegisterPage() {
       return;
     }
 
+    if (!name || !email || !password) {
+      Alert.alert("Error", "Please fill all required fields");
+      return;
+    }
+
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
-
+      await register(name, email, phone, password);
       Alert.alert("Success", "Account created successfully!");
-      router.push("/home");
+      // Don't manually navigate - index.tsx will handle routing based on auth state
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      Alert.alert("Error", err?.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
     }
@@ -73,6 +71,17 @@ export default function RegisterPage() {
             placeholder="you@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Phone (Optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={setPhone}
+            placeholder="052-1234567"
+            keyboardType="phone-pad"
           />
         </View>
 

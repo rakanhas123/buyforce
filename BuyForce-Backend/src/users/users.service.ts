@@ -13,7 +13,7 @@ export class UsersService {
     private readonly usersRepo: Repository<User>,
   ) {}
 
-  async findById(id: string): Promise<User> {
+  async findById(id: number): Promise<User> {
     const user = await this.usersRepo.findOne({ where: { id } });
     if (!user) {
       throw new NotFoundException('User not found');
@@ -31,18 +31,18 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    const passwordHash = await bcrypt.hash(dto.password, 10);
+    const password = await bcrypt.hash(dto.password, 10);
 
     const user = this.usersRepo.create({
       email: dto.email,
-      passwordHash,
+      password,
       fullName: dto.fullName,
     });
 
     return this.usersRepo.save(user);
   }
 
-  async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
+  async updateUser(id: number, dto: UpdateUserDto): Promise<User> {
     const user = await this.findById(id);
     Object.assign(user, dto);
     return this.usersRepo.save(user);

@@ -1,29 +1,50 @@
 import { View, Text, TextInput, Pressable, StyleSheet, Alert } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
+import { useAuth } from "../lib/AuthContext";
 
 export default function LoginScreen() {
   const router = useRouter();
+  const { login, isAuthenticated, isLoading } = useAuth();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleLogin = () => {
+  // Auto-navigate when authentication succeeds
+  useEffect(() => {
+    console.log('🔄 Login screen - auth state:', { isAuthenticated, isLoading });
+    if (!isLoading && isAuthenticated) {
+      console.log('✅ Already authenticated, navigating to home...');
+      router.replace("/(tabs)/home");
+    }
+  }, [isAuthenticated, isLoading]);
+
+  const handleLogin = async () => {
+    console.log('🚀 handleLogin called');
     // ❌ בדיקה – אם אחד ריק
     if (!email || !password) {
+      console.log('❌ Missing email or password');
       Alert.alert("Error", "Please enter email and password");
       return;
     }
 
+    console.log('✅ Validation passed, starting login...');
     // ✅ יש מייל וסיסמה
     setLoading(true);
 
-    // 🔹 מדמה התחברות
-    setTimeout(() => {
+    try {
+      console.log('📞 Calling login()...');
+      await login(email, password);
+      console.log('✅ Login completed successfully!');
+      // Don't manually navigate - index.tsx will handle routing based on auth state
+    } catch (error: any) {
+      console.error('❌ Login error caught:', error);
+      Alert.alert("Login Failed", error?.response?.data?.message || "Invalid credentials");
+    } finally {
+      console.log('🏁 Login process finished, setLoading(false)');
       setLoading(false);
-      router.replace("/(tabs)/home");
-    }, 1000);
+    }
   };
 
   return (
@@ -53,6 +74,16 @@ export default function LoginScreen() {
       >
         <Text style={styles.buttonText}>
           {loading ? "Loading..." : "Login"}
+        </Text>
+      </Pressable>
+
+      {/* Link to Register */}
+      <Pressable
+        style={styles.linkContainer}
+        onPress={() => router.push("/(auth)/register")}
+      >
+        <Text style={styles.linkText}>
+          Don't have an account? <Text style={styles.linkBold}>Sign up</Text>
         </Text>
       </Pressable>
     </View>
@@ -89,5 +120,17 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "#fff",
     fontWeight: "600",
+  },
+  linkContainer: {
+    marginTop: 20,
+    alignItems: "center",
+  },
+  linkText: {
+    color: "#666",
+    fontSize: 14,
+  },
+  linkBold: {
+    color: "#000",
+    fontWeight: "700",
   },
 });

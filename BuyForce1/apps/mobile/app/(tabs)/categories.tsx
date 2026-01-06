@@ -1,35 +1,93 @@
-import { View, Text, FlatList, Pressable, StyleSheet } from "react-native";
+import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
 import { useRouter } from "expo-router";
+import { useState, useEffect } from "react";
+import { categoriesApi, Category } from "../lib/api";
 
-type Category = {
-  id: string;
-  title: string;
-  icon: string;
+const CATEGORY_ICONS: { [key: string]: string } = {
+  // Hebrew names
+  "סמארטפונים": "📱",
+  "מחשבים ניידים": "💻",
+  "אביזרי אודיו": "🎧",
+  "קונסולות משחק": "🎮",
+  "מצלמות": "📷",
+  "אביזרי מחשב": "⌨️",
+  "מוצרי חשמל": "⚡",
+  "אביזרי Apple": "🍎",
+  "טכנולוגיה לבית חכם": "🏠",
+  "ספורט וכושר": "⚽",
+  // English names (from database)
+  "Phones": "📱",
+  "Laptops": "💻",
+  "Headphones": "🎧",
+  "Tablets": "📱",
+  "Cameras": "📷",
+  "Gaming": "🎮",
+  "Accessories": "⌨️",
+  "Smart Home": "🏠",
+  "Wearables": "⌚",
+  "Audio": "🔊",
 };
-
-const CATEGORIES: Category[] = [
-  { id: "electronics", title: "Electronics", icon: "🎧" },
-  { id: "fashion", title: "Fashion", icon: "👟" },
-  { id: "home", title: "Home", icon: "🏠" },
-  { id: "beauty", title: "Beauty", icon: "🧴" },
-];
 
 export default function CategoriesScreen() {
   const router = useRouter();
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    loadCategories();
+  }, []);
+
+  const loadCategories = async () => {
+    try {
+      const data = await categoriesApi.getAll();
+      setCategories(data);
+    } catch (error) {
+      console.error("Failed to load categories:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+    }
+  };
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadCategories();
+  };
+
+  const getIcon = (name: string) => {
+    return CATEGORY_ICONS[name] || "📦";
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>טוען קטגוריות...</Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Categories</Text>
+      <Text style={styles.title}>קטגוריות</Text>
       <Text style={styles.subtitle}>
-        Choose a category to see available products
+        בחר קטגוריה לצפייה במוצרים
       </Text>
 
       <FlatList
-        data={CATEGORIES}
-        keyExtractor={(item) => item.id}
+        data={categories}
+        keyExtractor={(item) => item.id.toString()}
         numColumns={2}
         columnWrapperStyle={styles.row}
         contentContainerStyle={styles.list}
+        refreshControl={
+          <RefreshControl 
+            refreshing={refreshing} 
+            onRefresh={onRefresh}
+            tintColor="#fff"
+          />
+        }
         renderItem={({ item }) => (
           <Pressable
             style={({ pressed }) => [
@@ -43,14 +101,19 @@ export default function CategoriesScreen() {
               })
             }
           >
-            <Text style={styles.icon}>{item.icon}</Text>
-            <Text style={styles.cardTitle}>{item.title}</Text>
+            <Text style={styles.icon}>{getIcon(item.name)}</Text>
+            <Text style={styles.cardTitle}>{item.name}</Text>
 
             <View style={styles.selectBadge}>
-              <Text style={styles.selectText}>Select</Text>
+              <Text style={styles.selectText}>בחר</Text>
             </View>
           </Pressable>
         )}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>אין קטגוריות להצגה</Text>
+          </View>
+        }
       />
     </View>
   );
@@ -63,7 +126,15 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#0b0b0f",
   },
-
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#9a9a9a",
+    marginTop: 12,
+    fontSize: 16,
+  },
   title: {
     fontSize: 28,
     fontWeight: "bold",
@@ -125,5 +196,13 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 13,
     fontWeight: "600",
+  },  empty: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 40,
   },
-});
+  emptyText: {
+    color: "#9a9a9a",
+    fontSize: 16,
+  },});

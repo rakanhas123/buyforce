@@ -4,75 +4,123 @@ import {
   StyleSheet,
   TextInput,
   Pressable,
+  ActivityIndicator,
 } from "react-native";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
+import { useAuth } from "../lib/AuthContext";
 
 export default function ProfileScreen() {
   const router = useRouter();
+  const { user, logout, isLoading } = useAuth();
   const [edit, setEdit] = useState(false);
 
-  const [name, setName] = useState("Customer Name");
-  const [email, setEmail] = useState("customer@mail.com");
-  const [phone, setPhone] = useState("050-0000000");
-  const [address, setAddress] = useState("Tel Aviv");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
+
+  useEffect(() => {
+    if (user) {
+      setName(user.full_name || "");
+      setEmail(user.email || "");
+      setPhone(user.phone || "");
+    }
+  }, [user]);
+
+  const handleLogout = async () => {
+    await logout();
+    router.replace("/(auth)/login");
+  };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>טוען...</Text>
+      </View>
+    );
+  }
+
+  if (!user) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <Text style={styles.notLoggedIn}>לא מחובר</Text>
+        <Pressable
+          style={styles.loginButton}
+          onPress={() => router.push("/(auth)/login")}
+        >
+          <Text style={styles.loginButtonText}>התחבר</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
-        <Pressable onPress={() => setEdit(!edit)}>
-          <Text style={styles.edit}>
-            {edit ? "Save" : "Edit"}
-          </Text>
-        </Pressable>
+        <Text style={styles.title}>פרופיל</Text>
+        {edit && (
+          <Pressable onPress={() => setEdit(false)}>
+            <Text style={styles.edit}>שמור</Text>
+          </Pressable>
+        )}
+      </View>
+
+      {/* User Info */}
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>מזהה משתמש</Text>
+        <Text style={styles.infoValue}>#{user.id}</Text>
       </View>
 
       {/* Fields */}
       <Field
-        label="Customer Name"
+        label="שם מלא"
         value={name}
         setValue={setName}
         edit={edit}
       />
 
       <Field
-        label="Email"
+        label="אימייל"
         value={email}
         setValue={setEmail}
-        edit={edit}
+        edit={false} // Email can't be edited
       />
 
       <Field
-        label="Phone Number"
+        label="טלפון"
         value={phone}
         setValue={setPhone}
         edit={edit}
       />
 
-      <Field
-        label="Address"
-        value={address}
-        setValue={setAddress}
-        edit={edit}
-      />
+      <View style={styles.infoCard}>
+        <Text style={styles.infoTitle}>תאריך הצטרפות</Text>
+        <Text style={styles.infoValue}>
+          {new Date(user.created_at).toLocaleDateString("he-IL")}
+        </Text>
+      </View>
 
       {/* Links */}
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>Payments</Text>
+        <Text style={styles.linkText}>ההזמנות שלי</Text>
       </Pressable>
 
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>Orders</Text>
+        <Text style={styles.linkText}>רשימת המשאלות</Text>
+      </Pressable>
+
+      <Pressable style={styles.link}>
+        <Text style={styles.linkText}>הקבוצות שלי</Text>
       </Pressable>
 
       {/* Logout */}
       <Pressable
         style={styles.logout}
-        onPress={() => router.replace("/(auth)/login")}
+        onPress={handleLogout}
       >
-        <Text style={styles.logoutText}>Logout</Text>
+        <Text style={styles.logoutText}>התנתק</Text>
       </Pressable>
     </View>
   );
@@ -112,6 +160,32 @@ const styles = StyleSheet.create({
     backgroundColor: "#0b0b0b",
     padding: 20,
   },
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#9ca3af",
+    marginTop: 12,
+    fontSize: 16,
+  },
+  notLoggedIn: {
+    color: "#fff",
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 20,
+  },
+  loginButton: {
+    backgroundColor: "#3b82f6",
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+  },
+  loginButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   header: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -125,6 +199,22 @@ const styles = StyleSheet.create({
   edit: {
     color: "#3b82f6",
     fontSize: 16,
+  },
+  infoCard: {
+    backgroundColor: "#1f2937",
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 12,
+  },
+  infoTitle: {
+    color: "#9ca3af",
+    fontSize: 12,
+    marginBottom: 4,
+  },
+  infoValue: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
   field: {
     marginBottom: 16,

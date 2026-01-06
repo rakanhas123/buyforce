@@ -7,14 +7,19 @@ for (const k of required) {
 }
 
 export const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: Number(process.env.DB_PORT),
-  database: process.env.DB_NAME,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
+  host:"localhost",
+  port: 5433,
+  database: "buyforce",
+  user: "postgres",
+  password: "rakan1",
 });
 
-export async function dbHealthCheck() {
-  const r = await pool.query("SELECT 1 as ok");
-  return r.rows?.[0]?.ok === 1;
+export async function dbHealthCheck(): Promise<boolean> {
+  try {
+    await pool.query("SELECT 1");
+    return true;
+  } catch (err) {
+    console.error("DB health check failed:", err);
+    return false;
+  }
 }

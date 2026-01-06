@@ -20,6 +20,8 @@ export class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        phone: user.phone,
+        created_at: user.createdAt,
       },
       token,
     };
@@ -31,7 +33,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const match = await bcrypt.compare(dto.password, user.passwordHash);
+    const match = await bcrypt.compare(dto.password, user.password);
     if (!match) {
       throw new UnauthorizedException('Invalid credentials');
     }
@@ -42,12 +44,14 @@ export class AuthService {
         id: user.id,
         email: user.email,
         fullName: user.fullName,
+        phone: user.phone,
+        created_at: user.createdAt,
       },
       token,
     };
   }
 
-  private signToken(userId: string, email: string): string {
+  private signToken(userId: number, email: string): string {
     const payload = { sub: userId, email };
     return this.jwtService.sign(payload);
   }
