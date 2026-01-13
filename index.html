@@ -1,0 +1,935 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BuyForce - Smart Group Shopping</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: #f8fafc;
+            min-height: 100vh;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .navbar-brand {
+            font-size: 1.5em;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .navbar-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .navbar-btn {
+            background: rgba(255,255,255,0.2);
+            border: 1px solid rgba(255,255,255,0.3);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+            transition: all 0.3s ease;
+        }
+
+        .navbar-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .navbar-btn.active {
+            background: white;
+            color: #667eea;
+        }
+
+        .wishlist-icon {
+            position: relative;
+            cursor: pointer;
+            font-size: 1.3em;
+        }
+
+        .wishlist-count {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ef4444;
+            color: white;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .search-section {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .categories {
+            display: flex;
+            gap: 10px;
+            margin-top: 12px;
+            flex-wrap: wrap;
+        }
+
+        .category-btn {
+            padding: 8px 16px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .category-btn:hover {
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .category-btn.active {
+            background: #667eea;
+            border-color: #667eea;
+            color: white;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .product-card {
+            background: white;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            position: relative;
+            color: rgba(255,255,255,0.7);
+        }
+
+        .wishlist-heart {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 1.5em;
+            cursor: pointer;
+            background: rgba(255,255,255,0.9);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .wishlist-heart:hover {
+            transform: scale(1.1);
+        }
+
+        .wishlist-heart.active {
+            color: #ef4444;
+        }
+
+        .product-content {
+            padding: 16px;
+        }
+
+        .product-category {
+            font-size: 0.8em;
+            color: #94a3b8;
+            text-transform: uppercase;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .product-name {
+            font-size: 1.1em;
+            font-weight: 600;
+            color: #1e293b;
+            margin-bottom: 8px;
+        }
+
+        .product-price {
+            font-size: 1.5em;
+            color: #667eea;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .product-rating {
+            color: #f59e0b;
+            font-size: 0.9em;
+            margin-bottom: 12px;
+        }
+
+        .group-info {
+            background: #f1f5f9;
+            padding: 10px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+            font-size: 0.9em;
+            color: #64748b;
+        }
+
+        .progress-bar {
+            height: 6px;
+            background: #cbd5e1;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 6px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 60%;
+            background: #667eea;
+        }
+
+        .button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        .modal-header {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #1e293b;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-close {
+            font-size: 1.5em;
+            cursor: pointer;
+            color: #94a3b8;
+        }
+
+        .modal-close:hover {
+            color: #1e293b;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .radio-group {
+            margin: 20px 0;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .radio-option:hover {
+            border-color: #667eea;
+            background: #f0f7ff;
+        }
+
+        .radio-option input {
+            margin-right: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #94a3b8;
+        }
+
+        .empty-state-icon {
+            font-size: 3em;
+            margin-bottom: 10px;
+        }
+
+        .user-menu {
+            position: relative;
+        }
+
+        .user-btn {
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+        .user-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            min-width: 150px;
+            z-index: 101;
+        }
+
+        .user-dropdown.active {
+            display: block;
+        }
+
+        .user-dropdown a {
+            display: block;
+            padding: 10px 16px;
+            color: #1e293b;
+            text-decoration: none;
+            border-bottom: 1px solid #e2e8f0;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .user-dropdown a:last-child {
+            border-bottom: none;
+        }
+
+        .user-dropdown a:hover {
+            background: #f1f5f9;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <div class="navbar">
+        <div class="navbar-brand">🛍️ BuyForce</div>
+        <div class="navbar-actions">
+            <div class="wishlist-icon" onclick="toggleWishlistModal()">
+                ♡ <span class="wishlist-count" id="wishlistCount">0</span>
+            </div>
+            <button class="navbar-btn" onclick="openMyGroups()" title="My Groups">🎯 Groups</button>
+            <div class="user-menu">
+                <button class="user-btn" onclick="toggleUserMenu()" id="userBtn">👤 Guest</button>
+                <div class="user-dropdown" id="userDropdown">
+                    <a onclick="openAuthModal('login')">Login</a>
+                    <a onclick="openAuthModal('register')">Register</a>
+                    <a onclick="logout()">Logout</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Search & Categories -->
+        <div class="search-section">
+            <input 
+                type="text" 
+                class="search-input" 
+                id="searchInput" 
+                placeholder="🔍 Search products, brands, or categories..."
+                onkeyup="filterProducts()"
+            >
+            <div class="categories">
+                <button class="category-btn active" onclick="filterByCategory('all')">📦 All Products</button>
+                <button class="category-btn" onclick="filterByCategory('electronics')">⚡ Electronics</button>
+                <button class="category-btn" onclick="filterByCategory('mobile')">📱 Mobile</button>
+                <button class="category-btn" onclick="filterByCategory('computer')">💻 Computers</button>
+                <button class="category-btn" onclick="filterByCategory('accessories')">🎧 Accessories</button>
+            </div>
+        </div>
+
+        <!-- Products Grid -->
+        <div class="products-grid" id="productsGrid">
+            <!-- Products will be inserted here -->
+        </div>
+
+        <!-- Empty State -->
+        <div class="empty-state" id="emptyState" style="display:none;">
+            <div class="empty-state-icon">📭</div>
+            <h2>No products found</h2>
+            <p>Try adjusting your search or filters</p>
+        </div>
+    </div>
+
+    <!-- Authentication Modal -->
+    <div class="modal" id="authModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span id="authTitle">Login</span>
+                <span class="modal-close" onclick="closeAuthModal()">&times;</span>
+            </div>
+
+            <form onsubmit="handleAuth(event)" id="authForm">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" required placeholder="your@email.com">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Password</label>
+                    <input type="password" class="form-input" required placeholder="••••••••">
+                </div>
+                <div class="form-group" id="nameGroup" style="display:none;">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" class="form-input" placeholder="Your Name">
+                </div>
+                <button type="submit" class="button btn-primary" id="authBtn">Login</button>
+                <p style="text-align:center; margin-top: 12px; color: #94a3b8;">
+                    <span id="authToggleText">Don't have an account? <a href="#" onclick="toggleAuthMode(event)" style="color:#667eea;">Register</a></span>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payment Modal -->
+    <div class="modal" id="paymentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>💳 Complete Payment</span>
+                <span class="modal-close" onclick="closePaymentModal()">&times;</span>
+            </div>
+
+            <div class="summary-row">
+                <span>Product:</span>
+                <strong id="paymentProductName">-</strong>
+            </div>
+            <div class="summary-row">
+                <span>Amount to Pay:</span>
+                <strong id="paymentAmount">$99.99</strong>
+            </div>
+            <div class="summary-row">
+                <span>Group Target:</span>
+                <strong>5 units</strong>
+            </div>
+            <div class="summary-row">
+                <span>Current Participants:</span>
+                <strong id="paymentParticipants">4/5</strong>
+            </div>
+
+            <div class="radio-group">
+                <label class="radio-option">
+                    <input type="radio" name="payment" value="paypal" checked onchange="setPaymentMethod('paypal')">
+                    <span>
+                        <strong>🅿️ PayPal</strong><br>
+                        <small>Fast & Secure Payment</small>
+                    </span>
+                </label>
+                <label class="radio-option">
+                    <input type="radio" name="payment" value="stripe" onchange="setPaymentMethod('stripe')">
+                    <span>
+                        <strong>💳 Credit/Debit Card</strong><br>
+                        <small>Visa, Mastercard, Amex</small>
+                    </span>
+                </label>
+            </div>
+
+            <div class="loading" id="paymentLoading">
+                <div class="spinner"></div>
+                Processing payment...
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="button btn-secondary" onclick="closePaymentModal()" style="flex: 1; background: #e2e8f0; color: #1e293b;">Cancel</button>
+                <button class="button btn-primary" onclick="processPayment()" style="flex: 1;">Pay Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Wishlist Modal -->
+    <div class="modal" id="wishlistModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>❤️ My Wishlist</span>
+                <span class="modal-close" onclick="closeWishlistModal()">&times;</span>
+            </div>
+            <div id="wishlistContent">
+                <p style="text-align: center; color: #94a3b8; padding: 20px;">Your wishlist is empty</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Groups Modal -->
+    <div class="modal" id="groupsModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <span>🎯 My Groups</span>
+                <span class="modal-close" onclick="closeGroupsModal()">&times;</span>
+            </div>
+            <div id="groupsContent">
+                <p style="text-align: center; color: #94a3b8; padding: 20px;">Loading your groups...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Sample Products Data with images
+        const allProducts = [
+            { id: 1, name: 'Premium Headphones', category: 'electronics', price: 99.99, icon: '🎧', image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400&h=300&fit=crop', rating: 5, participants: '3/5' },
+            { id: 2, name: 'Wireless Mouse', category: 'accessories', price: 29.99, icon: '🖱️', image: 'https://images.unsplash.com/photo-1527814050087-3793815479db?w=400&h=300&fit=crop', rating: 4.5, participants: '2/5' },
+            { id: 3, name: 'Mechanical Keyboard', category: 'computer', price: 149.99, icon: '⌨️', image: 'https://images.unsplash.com/photo-1587829191301-11db59a44f6b?w=400&h=300&fit=crop', rating: 4.8, participants: '4/5' },
+            { id: 4, name: 'USB-C Cable', category: 'accessories', price: 12.99, icon: '🔌', image: 'https://images.unsplash.com/photo-1625948515291-69613efd103f?w=400&h=300&fit=crop', rating: 4, participants: '5/5' },
+            { id: 5, name: 'Smartphone Stand', category: 'accessories', price: 19.99, icon: '📱', image: 'https://images.unsplash.com/photo-1605559424843-9e4c3ca4b2f5?w=400&h=300&fit=crop', rating: 4.3, participants: '1/5' },
+            { id: 6, name: '4K Webcam', category: 'electronics', price: 79.99, icon: '📹', image: 'https://images.unsplash.com/photo-1598327105666-5b89351aff97?w=400&h=300&fit=crop', rating: 4.6, participants: '2/5' },
+            { id: 7, name: 'Laptop Cooling Pad', category: 'computer', price: 45.99, icon: '❄️', image: 'https://images.unsplash.com/photo-1588872657840-790ff3a58f60?w=400&h=300&fit=crop', rating: 4.4, participants: '3/5' },
+            { id: 8, name: 'External SSD', category: 'computer', price: 129.99, icon: '💾', image: 'https://images.unsplash.com/photo-1597872200969-2b65d56bd16b?w=400&h=300&fit=crop', rating: 4.7, participants: '4/5' }
+        ];
+
+        let currentUser = null;
+        let wishlist = JSON.parse(localStorage.getItem('wishlist')) || [];
+        let currentPaymentMethod = 'paypal';
+        let selectedProduct = null;
+        let currentAuthMode = 'login';
+        let joinedGroups = JSON.parse(localStorage.getItem('joinedGroups')) || [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            renderProducts(allProducts);
+            updateWishlistCount();
+            loadUserSession();
+        });
+
+        function loadUserSession() {
+            const savedUser = localStorage.getItem('currentUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('userBtn').textContent = '👤 ' + currentUser.email.split('@')[0];
+            }
+        }
+
+        function saveUserSession() {
+            if (currentUser) {
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+            }
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('productsGrid');
+            const empty = document.getElementById('emptyState');
+
+            if (products.length === 0) {
+                grid.innerHTML = '';
+                empty.style.display = 'block';
+                return;
+            }
+
+            empty.style.display = 'none';
+            grid.innerHTML = products.map(product => `
+                <div class="product-card">
+                    <div class="product-image" style="background-image: url('${product.image}');">
+                        <div class="wishlist-heart ${wishlist.includes(product.id) ? 'active' : ''}" 
+                             onclick="toggleWishlist(${product.id})">
+                            ${wishlist.includes(product.id) ? '❤️' : '♡'}
+                        </div>
+                    </div>
+                    <div class="product-content">
+                        <div class="product-category">${product.category}</div>
+                        <div class="product-name">${product.name}</div>
+                        <div class="product-price">$${product.price.toFixed(2)}</div>
+                        <div class="product-rating">⭐ ${product.rating}</div>
+                        <div class="group-info">
+                            👥 ${product.participants} joined
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: ${(parseInt(product.participants) / 5) * 100}%"></div>
+                            </div>
+                        </div>
+                        <button class="button btn-primary" onclick="openPaymentModal(${product.id}, ${product.price}, '${product.name}')">
+                            💳 Join Group & Pay
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function filterByCategory(category) {
+            document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const filtered = category === 'all' 
+                ? allProducts 
+                : allProducts.filter(p => p.category === category);
+            renderProducts(filtered);
+        }
+
+        function filterProducts() {
+            const search = document.getElementById('searchInput').value.toLowerCase();
+            const filtered = allProducts.filter(p => 
+                p.name.toLowerCase().includes(search) || 
+                p.category.toLowerCase().includes(search)
+            );
+            renderProducts(filtered);
+        }
+
+        function toggleWishlist(productId) {
+            if (wishlist.includes(productId)) {
+                wishlist = wishlist.filter(id => id !== productId);
+            } else {
+                wishlist.push(productId);
+            }
+            localStorage.setItem('wishlist', JSON.stringify(wishlist));
+            renderProducts(allProducts);
+            updateWishlistCount();
+        }
+
+        function updateWishlistCount() {
+            document.getElementById('wishlistCount').textContent = wishlist.length;
+        }
+
+        function toggleWishlistModal() {
+            const modal = document.getElementById('wishlistModal');
+            const content = document.getElementById('wishlistContent');
+            
+            if (wishlist.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 20px;">Your wishlist is empty</p>';
+            } else {
+                const items = wishlist.map(id => {
+                    const product = allProducts.find(p => p.id === id);
+                    return `<div style="padding: 12px; border-bottom: 1px solid #e2e8f0;">
+                        <div>${product.icon} ${product.name}</div>
+                        <div style="color: #667eea; font-weight: bold;">$${product.price.toFixed(2)}</div>
+                    </div>`;
+                }).join('');
+                content.innerHTML = items;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeWishlistModal() {
+            document.getElementById('wishlistModal').classList.remove('active');
+        }
+
+        function openAuthModal(mode) {
+            currentAuthMode = mode;
+            document.getElementById('authModal').classList.add('active');
+            document.getElementById('authTitle').textContent = mode === 'login' ? 'Login' : 'Register';
+            document.getElementById('authBtn').textContent = mode === 'login' ? 'Login' : 'Create Account';
+            document.getElementById('nameGroup').style.display = mode === 'register' ? 'block' : 'none';
+            document.getElementById('authToggleText').innerHTML = mode === 'login' 
+                ? "Don't have an account? <a href='#' onclick='toggleAuthMode(event)' style='color:#667eea;'>Register</a>"
+                : "Already have an account? <a href='#' onclick='toggleAuthMode(event)' style='color:#667eea;'>Login</a>";
+        }
+
+        function toggleAuthMode(e) {
+            e.preventDefault();
+            currentAuthMode = currentAuthMode === 'login' ? 'register' : 'login';
+            openAuthModal(currentAuthMode);
+        }
+
+        function handleAuth(e) {
+            e.preventDefault();
+            const formData = new FormData(e.target);
+            const email = formData.get('email');
+            const password = formData.get('password');
+            
+            // Simple validation
+            if (!email || !password) {
+                alert('Please fill in all fields');
+                return;
+            }
+            
+            currentUser = { email: email, mode: currentAuthMode };
+            saveUserSession();
+            document.getElementById('userBtn').textContent = '👤 ' + email.split('@')[0];
+            closeAuthModal();
+            alert(`✅ ${currentAuthMode === 'login' ? 'Logged in' : 'Registered'} successfully!`);
+        }
+
+        function toggleUserMenu() {
+            document.getElementById('userDropdown').classList.toggle('active');
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            document.getElementById('userBtn').textContent = '👤 Guest';
+            closeUserMenu();
+            alert('Logged out');
+        }
+
+        function closeUserMenu() {
+            document.getElementById('userDropdown').classList.remove('active');
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.remove('active');
+        }
+
+        function openPaymentModal(productId, price, name) {
+            if (!currentUser) {
+                alert('Please login first to make purchases');
+                openAuthModal('login');
+                return;
+            }
+            
+            selectedProduct = { id: productId, price, name };
+            document.getElementById('paymentAmount').textContent = `$${price.toFixed(2)}`;
+            document.getElementById('paymentProductName').textContent = name;
+            document.getElementById('paymentModal').classList.add('active');
+        }
+
+        function closePaymentModal() {
+            document.getElementById('paymentModal').classList.remove('active');
+        }
+
+        function setPaymentMethod(method) {
+            currentPaymentMethod = method;
+        }
+
+        async function processPayment() {
+            if (!selectedProduct) return;
+
+            const loading = document.getElementById('paymentLoading');
+            loading.style.display = 'block';
+
+            try {
+                const response = await fetch('http://localhost:3000/api/payments/group-join', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        productId: selectedProduct.id,
+                        groupId: 'group-' + selectedProduct.id,
+                        amount: selectedProduct.price,
+                        paymentMethod: currentPaymentMethod,
+                        userId: currentUser.email
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Save joined group
+                    const groupJoin = {
+                        productId: selectedProduct.id,
+                        productName: selectedProduct.name,
+                        amount: selectedProduct.price,
+                        date: new Date().toLocaleDateString(),
+                        transactionId: data.paymentIntentId,
+                        status: 'completed'
+                    };
+                    joinedGroups.push(groupJoin);
+                    localStorage.setItem('joinedGroups', JSON.stringify(joinedGroups));
+                    
+                    alert(`✅ Payment Successful!\n\nTransaction ID: ${data.paymentIntentId}\nAmount: $${data.amount}\nMethod: ${currentPaymentMethod.toUpperCase()}`);
+                    closePaymentModal();
+                } else {
+                    alert('❌ Payment Failed: ' + (data.message || 'Please try again'));
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        function openMyGroups() {
+            if (!currentUser) {
+                alert('Please login to view your groups');
+                return;
+            }
+            
+            const modal = document.getElementById('groupsModal');
+            const content = document.getElementById('groupsContent');
+            
+            if (joinedGroups.length === 0) {
+                content.innerHTML = '<p style="text-align: center; color: #94a3b8; padding: 20px;">You haven\'t joined any groups yet</p>';
+            } else {
+                const items = joinedGroups.map((group, idx) => `
+                    <div style="padding: 16px; border-bottom: 1px solid #e2e8f0; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; margin-bottom: 10px;">
+                        <div style="font-weight: bold; font-size: 1.1em;">${group.productName}</div>
+                        <div style="margin-top: 8px; font-size: 0.9em;">
+                            <div>💰 Amount: $${group.amount.toFixed(2)}</div>
+                            <div>📅 Date: ${group.date}</div>
+                            <div>✅ Status: ${group.status}</div>
+                            <div>🔑 Transaction: ${group.transactionId.substring(0, 12)}...</div>
+                        </div>
+                    </div>
+                `).join('');
+                content.innerHTML = items;
+            }
+            
+            modal.classList.add('active');
+        }
+
+        function closeGroupsModal() {
+            document.getElementById('groupsModal').classList.remove('active');
+        }
+
+        // Close dropdowns on outside click
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.user-menu')) {
+                closeUserMenu();
+            }
+        });
+
+        // Close modals on background click
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    if (modal.id === 'authModal') closeAuthModal();
+                    if (modal.id === 'paymentModal') closePaymentModal();
+                    if (modal.id === 'wishlistModal') closeWishlistModal();
+                    if (modal.id === 'groupsModal') closeGroupsModal();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
