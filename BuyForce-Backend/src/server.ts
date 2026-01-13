@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 
 import productsRoutes from "./routes/products.routes";
+import categoriesRoutes from "./routes/categories.routes";
+import apiGroupsRoutes from "./routes/api.groups.routes";
 import groupsRoutes from "./routes/groups.routes";
 import paymentsRoutes from "./routes/payment.routes";
 import authRoutes from "./routes/auth.routes";
@@ -39,6 +41,8 @@ app.post(
    API Routes
 ================================ */
 app.use("/api/products", productsRoutes);
+app.use("/api/categories", categoriesRoutes);
+app.use("/api/groups", apiGroupsRoutes);
 
 app.use("/v1/groups", groupsRoutes);
 app.use("/v1/payments", paymentsRoutes);

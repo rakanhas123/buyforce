@@ -87,8 +87,8 @@ app.post('/v1/auth/register', async (req, res) => {
       return res.status(409).json({ error: 'Email already exists' });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password - מהיר יותר עם 8 rounds במקום 10
+    const hashedPassword = await bcrypt.hash(password, 8);
 
     // Create user
     const result = await pool.query(
@@ -124,6 +124,10 @@ app.get('/api/products', async (req, res) => {
     let query = `
       SELECT 
         p.*,
+        jsonb_build_object(
+          'id', c.id,
+          'name', c.name
+        ) as category,
         json_agg(
           DISTINCT jsonb_build_object(
             'id', i.id,
@@ -138,6 +142,7 @@ app.get('/api/products', async (req, res) => {
           )
         ) FILTER (WHERE s.id IS NOT NULL) as specs
       FROM products p
+      LEFT JOIN categories c ON p.category_id = c.id
       LEFT JOIN images i ON p.id = i.product_id
       LEFT JOIN specs s ON p.id = s.product_id
     `;
@@ -148,7 +153,7 @@ app.get('/api/products', async (req, res) => {
       params.push(categoryId);
     }
     
-    query += ' GROUP BY p.id ORDER BY p.id';
+    query += ' GROUP BY p.id, c.id, c.name ORDER BY c.name, p.name';
     
     const result = await pool.query(query, params);
     

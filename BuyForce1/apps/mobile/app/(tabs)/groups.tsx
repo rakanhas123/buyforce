@@ -23,12 +23,16 @@ export default function GroupsScreen() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    loadGroups();
+    loadGroups(true);
   }, []);
 
-  const loadGroups = async () => {
+  const loadGroups = async (isInitialLoad = false) => {
     try {
-      setLoading(true);
+      // רק בטעינה ראשונית תראה loading מלא
+      if (isInitialLoad) {
+        setLoading(true);
+      }
+      
       const data = await groupsApi.getAll();
       setGroups(data);
     } catch (error) {
@@ -41,7 +45,7 @@ export default function GroupsScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadGroups();
+    loadGroups(false); // לא תראה loading מלא, רק את ה-spinner למעלה
   };
 
   const handleBack = () => {

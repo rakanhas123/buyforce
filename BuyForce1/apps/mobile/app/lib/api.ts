@@ -12,7 +12,7 @@ const getBaseURL = () => {
   console.log('🔍 Platform.OS:', Platform.OS);
   
   // Force use WiFi IP for testing
-  const WIFI_IP = '192.168.160.126';
+  const WIFI_IP = '192.168.160.142';
   
   // If running on real device, use the debugger host IP
   if (debuggerHost && !debuggerHost.includes('localhost')) {
@@ -170,8 +170,11 @@ export const authApi = {
 // Products API
 export const productsApi = {
   getAll: async (categoryId?: number): Promise<Product[]> => {
-    const params = categoryId ? { categoryId } : {};
-    const { data } = await api.get('/api/products', { params });
+    // אם יש categoryId, משתמשים ב-endpoint של הקטגוריה
+    const endpoint = categoryId 
+      ? `/api/categories/${categoryId}/products`
+      : '/api/products';
+    const { data } = await api.get(endpoint);
     return data;
   },
 

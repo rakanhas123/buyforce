@@ -12,7 +12,7 @@ import {
 import { useRouter } from "expo-router";
 import { useMemo, useState, useEffect } from "react";
 
-import { productsApi, Product } from "../lib/api";
+import { productsApi, Product, categoriesApi, Category } from "../lib/api";
 import { useWishlist } from "../lib/WishlistContext";
 
 export default function HomeScreen() {
@@ -20,21 +20,31 @@ export default function HomeScreen() {
   const { wishlist, toggleWishlist } = useWishlist();
 
   const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("all");
 
   useEffect(() => {
-    loadProducts();
+    loadData(true);
   }, []);
 
-  const loadProducts = async () => {
+  const loadData = async (isInitialLoad = false) => {
     try {
-      const data = await productsApi.getAll();
-      setProducts(data);
+      // רק בטעינה ראשונית תראה loading מלא
+      if (isInitialLoad) {
+        setLoading(true);
+      }
+      
+      const [productsData, categoriesData] = await Promise.all([
+        productsApi.getAll(),
+        categoriesApi.getAll(),
+      ]);
+      setProducts(productsData);
+      setCategories(categoriesData);
     } catch (error) {
-      console.error("Failed to load products:", error);
+      console.error("Failed to load data:", error);
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -43,19 +53,31 @@ export default function HomeScreen() {
 
   const onRefresh = () => {
     setRefreshing(true);
-    loadProducts();
+    loadData(false); // לא תראה loading מלא, רק את ה-spinner למעלה
   };
 
-  /* 🔍 סינון לפי חיפוש */
+  /* 🔍 סינון ומיון לפי חיפוש וקטגוריה */
   const filteredProducts = useMemo(() => {
-    return products.filter(p => {
-      const matchSearch = p.name
-        .toLowerCase()
-        .includes(search.toLowerCase());
-
-      return matchSearch;
+    if (!products || !Array.isArray(products)) return [];
+    
+    const filtered = products.filter(p => {
+      const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+      const matchCategory = category === "all" || p.category?.id?.toString() === category;
+      return matchSearch && matchCategory;
     });
-  }, [search, products]);
+
+    // מיון לפי קטגוריה ואז לפי שם
+    return filtered.sort((a, b) => {
+      // אם אותה קטגוריה - מיין לפי שם
+      if (a.category?.id === b.category?.id) {
+        return a.name.localeCompare(b.name, 'he');
+      }
+      // אחרת מיין לפי שם הקטגוריה
+      const catA = a.category?.name || '';
+      const catB = b.category?.name || '';
+      return catA.localeCompare(catB, 'en');
+    });
+  }, [search, category, products]);
 
   const renderItem = ({ item }: { item: Product }) => {
     const mainImage = item.images?.find(img => img.is_main)?.image_url || 
@@ -134,52 +156,35 @@ export default function HomeScreen() {
         style={styles.search}
       />
 
-      {/* 🔹 קטגוריות */}
+      {/* 🔹 קטגוריות מהדאטאבייס */}
       <View style={styles.tabs}>
         <Pressable onPress={() => setCategory("all")}>
-          <Text
-            style={[
-              styles.tab,
-              category === "all" && styles.activeTab,
-            ]}
-          >
-            הכול
+          <Text style={[styles.tab, category === "all" && styles.activeTab]}>
+            הכול ({products.length})
           </Text>
         </Pressable>
 
-        <Pressable onPress={() => setCategory("electronics")}>
-          <Text
-            style={[
-              styles.tab,
-              category === "electronics" && styles.activeTab,
-            ]}
+        {categories.map(cat => (
+          <Pressable 
+            key={cat.id} 
+            onPress={() => setCategory(cat.id.toString())}
           >
-            אלקטרוניקה
-          </Text>
-        </Pressable>
-
-        <Pressable onPress={() => setCategory("mobile")}>
-          <Text
-            style={[
-              styles.tab,
-              category === "mobile" && styles.activeTab,
-            ]}
-          >
-            סלולר
-          </Text>
-        </Pressable>
-
-        <Pressable onPress={() => setCategory("computer")}>
-          <Text
-            style={[
-              styles.tab,
-              category === "computer" && styles.activeTab,
-            ]}
-          >
-            מחשבים
-          </Text>
-        </Pressable>
+            <Text
+              style={[
+                styles.tab,
+                category === cat.id.toString() && styles.activeTab,
+              ]}
+            >
+              {cat.name}
+            </Text>
+          </Pressable>
+        ))}
       </View>
+
+      {/* מונה תוצאות */}
+      <Text style={styles.resultsCount}>
+        {filteredProducts.length} מוצרים
+      </Text>
 
       {/* Products */}
       <FlatList
@@ -240,6 +245,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 10,
     marginBottom: 12,
+    flexWrap: "wrap",
   },
   tab: {
     color: "#e5e7eb",
@@ -252,6 +258,11 @@ const styles = StyleSheet.create({
     backgroundColor: "#2563eb",
     color: "#fff",
     fontWeight: "800",
+  },
+  resultsCount: {
+    color: "#9ca3af",
+    fontSize: 14,
+    marginBottom: 8,
   },
   card: {
     backgroundColor: "#111",

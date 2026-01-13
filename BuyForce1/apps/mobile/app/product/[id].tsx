@@ -160,15 +160,16 @@ export default function ProductScreen() {
           product.stock_quantity === 0 && styles.joinButtonDisabled
         ]}
         disabled={product.stock_quantity === 0}
-        onPress={() =>
+        onPress={() => {
+          // נווט למסך קבוצות עם סינון לפי המוצר הזה
           router.push({
-            pathname: "/group/[id]",
+            pathname: "/(tabs)/groups",
             params: {
-              id: product.id.toString(),
+              productId: product.id.toString(),
               productName: product.name,
             },
-          })
-        }
+          });
+        }}
       >
         <Text style={styles.joinText}>
           {product.stock_quantity > 0 ? "הצטרף לקבוצה" : "אזל מהמלאי"}
