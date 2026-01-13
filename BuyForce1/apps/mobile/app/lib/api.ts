@@ -11,6 +11,12 @@ const getBaseURL = () => {
   console.log('🔍 debuggerHost:', debuggerHost);
   console.log('🔍 Platform.OS:', Platform.OS);
   
+  // For web platform, always use localhost
+  if (Platform.OS === 'web') {
+    console.log('🌐 Using Web - localhost');
+    return 'http://localhost:3000';
+  }
+  
   // Force use WiFi IP for testing
   const WIFI_IP = '192.168.160.126';
   
@@ -172,7 +178,9 @@ export const productsApi = {
   getAll: async (categoryId?: number): Promise<Product[]> => {
     const params = categoryId ? { categoryId } : {};
     const { data } = await api.get('/api/products', { params });
-    return data;
+    console.log('📦 Raw API response:', data);
+    // Backend returns { source: 'db', items: [...] }
+    return data.items || data;
   },
 
   getById: async (id: number): Promise<Product> => {

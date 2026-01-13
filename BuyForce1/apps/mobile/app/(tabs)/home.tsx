@@ -12,6 +12,7 @@ import {
   Dimensions,
   Modal,
   Alert,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useEffect, useRef } from "react";
@@ -92,7 +93,9 @@ export default function HomeScreen() {
 
   const loadProducts = async () => {
     try {
+      console.log('📦 Loading products from API...');
       const data = await productsApi.getAll();
+      console.log('✅ Products loaded:', data.length, 'products');
       setProducts(data);
       
       // Initialize groups for each product
@@ -145,7 +148,8 @@ export default function HomeScreen() {
     setPaymentLoading(true);
     try {
       // Step 1: Request Payment Intent from backend
-      const paymentIntentResponse = await fetch("http://192.168.160.126:3000/api/payments/group-join", {
+      const API_BASE = Platform.OS === 'web' ? 'http://localhost:3000' : 'http://192.168.160.126:3000';
+      const paymentIntentResponse = await fetch(`${API_BASE}/api/payments/group-join`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -167,7 +171,7 @@ export default function HomeScreen() {
 
       // Step 2: For demo purposes - confirm payment directly
       // In production, this would involve actual Stripe checkout or PayPal flow
-      const confirmResponse = await fetch("http://192.168.160.126:3000/api/payments/confirm-payment", {
+      const confirmResponse = await fetch(`${API_BASE}/api/payments/confirm-payment`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -275,6 +275,43 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
+// Payment endpoints for demo
+app.post('/api/payments/group-join', async (req, res) => {
+  try {
+    const { productId, groupId, amount, paymentMethod } = req.body;
+    
+    // Generate a mock payment intent ID
+    const paymentIntentId = `pi_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    res.json({
+      success: true,
+      paymentIntentId,
+      message: 'Payment intent created successfully',
+    });
+  } catch (err) {
+    console.error('Payment error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+app.post('/api/payments/confirm-payment', async (req, res) => {
+  try {
+    const { paymentIntentId, productId, groupId, userId } = req.body;
+    
+    // Generate a mock transaction ID
+    const transactionId = `txn_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    res.json({
+      success: true,
+      transactionId,
+      message: 'Payment confirmed successfully',
+    });
+  } catch (err) {
+    console.error('Payment confirmation error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
