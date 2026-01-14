@@ -66,8 +66,8 @@ export default function WishlistScreen() {
           <Text style={styles.price}>₪{price.toFixed(2)}</Text>
           <Text style={styles.stock}>
             {item.stock_quantity > 0 
-              ? `${item.stock_quantity} in stock` 
-              : "Out of stock"}
+              ? `${item.stock_quantity} במלאי` 
+              : "אזל מהמלאי"}
           </Text>
         </View>
       </View>
@@ -78,19 +78,19 @@ export default function WishlistScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>טוען...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>My Wishlist ❤️</Text>
+      <Text style={styles.header}>רשימת המשאלות שלי ❤️</Text>
 
       {wishlistProducts.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>
-            You haven't added any products to your wishlist yet
+            עדיין לא הוספת מוצרים לרשימת המשאלות
           </Text>
         </View>
       ) : (

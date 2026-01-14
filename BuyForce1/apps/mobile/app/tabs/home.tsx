@@ -17,20 +17,15 @@ import {
 import { useRouter } from "expo-router";
 import { useState, useEffect, useRef } from "react";
 
-import { productsApi, categoriesApi, Product, Category } from "../lib/api";
+import { productsApi, Product } from "../lib/api";
 import { useWishlist } from "../lib/WishlistContext";
 
-// Category icons mapping
-const CATEGORY_ICONS: {[key: string]: string} = {
-  'Phones': '📱',
-  'Laptops': '💻',
-  'Tablets': '📱',
-  'Wearables': '⌚',
-  'Headphones': '🎧',
-  'Gaming': '🎮',
-  'Cameras': '📷',
-  'Home': '🏠',
-};
+const CATEGORIES = [
+  { id: "all", label: "All Products", icon: "📦" },
+  { id: "electronics", label: "Electronics", icon: "⚡" },
+  { id: "mobile", label: "Mobile", icon: "📱" },
+  { id: "computer", label: "Computers", icon: "💻" },
+];
 
 const BANNERS = [
   {
@@ -74,10 +69,9 @@ export default function HomeScreen() {
   const bannerScrollX = useRef(new Animated.Value(0)).current;
 
   const [products, setProducts] = useState<Product[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
   
   // Groups state - store groups per product
@@ -91,32 +85,16 @@ export default function HomeScreen() {
 
   useEffect(() => {
     loadProducts();
-    loadCategories();
     const bannerTimer = setInterval(() => {
       setCurrentBannerIndex(prev => (prev + 1) % BANNERS.length);
     }, 4000);
     return () => clearInterval(bannerTimer);
   }, []);
 
-  useEffect(() => {
-    loadProducts();
-  }, [selectedCategory]);
-
-  const loadCategories = async () => {
-    try {
-      console.log('🏷️  Loading categories from API...');
-      const data = await categoriesApi.getAll();
-      console.log('✅ Categories loaded:', data.length, 'categories');
-      setCategories(data);
-    } catch (error) {
-      console.error("❌ Error loading categories:", error);
-    }
-  };
-
   const loadProducts = async () => {
     try {
       console.log('📦 Loading products from API...');
-      const data = await productsApi.getAll(selectedCategory || undefined);
+      const data = await productsApi.getAll();
       console.log('✅ Products loaded:', data.length, 'products');
       setProducts(data);
       
@@ -629,27 +607,7 @@ export default function HomeScreen() {
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
-          {/* All Products */}
-          <Pressable
-            style={[
-              styles.categoryButton,
-              selectedCategory === null && styles.categoryButtonActive,
-            ]}
-            onPress={() => setSelectedCategory(null)}
-          >
-            <Text style={styles.categoryIcon}>📦</Text>
-            <Text
-              style={[
-                styles.categoryLabel,
-                selectedCategory === null && styles.categoryLabelActive,
-              ]}
-            >
-              All Products
-            </Text>
-          </Pressable>
-          
-          {/* Dynamic Categories from API */}
-          {categories.map(category => (
+          {CATEGORIES.map(category => (
             <Pressable
               key={category.id}
               style={[
@@ -658,14 +616,14 @@ export default function HomeScreen() {
               ]}
               onPress={() => setSelectedCategory(category.id)}
             >
-              <Text style={styles.categoryIcon}>{CATEGORY_ICONS[category.name] || '📦'}</Text>
+              <Text style={styles.categoryIcon}>{category.icon}</Text>
               <Text
                 style={[
                   styles.categoryLabel,
                   selectedCategory === category.id && styles.categoryLabelActive,
                 ]}
               >
-                {category.name}
+                {category.label}
               </Text>
             </Pressable>
           ))}

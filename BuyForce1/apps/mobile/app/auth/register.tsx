@@ -18,17 +18,20 @@ export default function RegisterPage() {
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
       console.log('✅ Registration successful, navigating to home...');
-      router.replace("/(tabs)/home");
+      router.replace("/tabs/home");
     }
   }, [isAuthenticated, isLoading]);
 
   const handleSubmit = async () => {
+    console.log('📝 Form data:', { name, email, phone, password, confirmPassword });
+    
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
       return;
     }
 
     if (!name || !email || !password) {
+      console.log('❌ Validation failed:', { name, email, password });
       Alert.alert("Error", "Please fill all required fields");
       return;
     }
@@ -36,10 +39,12 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
+      console.log('🚀 Calling register with:', { name, email, phone, password });
       await register(name, email, phone, password);
       Alert.alert("Success", "Account created successfully!");
       // Don't manually navigate - index.tsx will handle routing based on auth state
     } catch (err: any) {
+      console.error('❌ Register error:', err);
       Alert.alert("Error", err?.response?.data?.message || "Registration failed");
     } finally {
       setLoading(false);
@@ -56,7 +61,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={name}
-            onChangeText={setName}
+            onChangeText={(text) => {
+              console.log('✍️ Name changed:', text);
+              setName(text);
+            }}
             placeholder="Your name"
             autoCapitalize="words"
           />
@@ -67,7 +75,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              console.log('✍️ Email changed:', text);
+              setEmail(text);
+            }}
             placeholder="you@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
@@ -79,7 +90,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={phone}
-            onChangeText={setPhone}
+            onChangeText={(text) => {
+              console.log('✍️ Phone changed:', text);
+              setPhone(text);
+            }}
             placeholder="052-1234567"
             keyboardType="phone-pad"
           />
@@ -90,7 +104,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              console.log('✍️ Password changed:', text);
+              setPassword(text);
+            }}
             placeholder="••••••••"
             secureTextEntry
           />
@@ -101,7 +118,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => {
+              console.log('✍️ Confirm Password changed:', text);
+              setConfirmPassword(text);
+            }}
             placeholder="••••••••"
             secureTextEntry
           />
@@ -109,7 +129,10 @@ export default function RegisterPage() {
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleSubmit}
+          onPress={() => {
+            console.log('🔘 Register button pressed!');
+            handleSubmit();
+          }}
           disabled={loading}
         >
           <Text style={styles.buttonText}>

@@ -4,6 +4,18 @@ import { useState, useEffect } from "react";
 import { categoriesApi, Category } from "../lib/api";
 
 const CATEGORY_ICONS: { [key: string]: string } = {
+  // Hebrew names
+  "סמארטפונים": "📱",
+  "מחשבים ניידים": "💻",
+  "אביזרי אודיו": "🎧",
+  "קונסולות משחק": "🎮",
+  "מצלמות": "📷",
+  "אביזרי מחשב": "⌨️",
+  "מוצרי חשמל": "⚡",
+  "אביזרי Apple": "🍎",
+  "טכנולוגיה לבית חכם": "🏠",
+  "ספורט וכושר": "⚽",
+  // English names (from database)
   "Phones": "📱",
   "Laptops": "💻",
   "Headphones": "🎧",
@@ -14,7 +26,6 @@ const CATEGORY_ICONS: { [key: string]: string } = {
   "Smart Home": "🏠",
   "Wearables": "⌚",
   "Audio": "🔊",
-  "Home": "🏠",
 };
 
 export default function CategoriesScreen() {
@@ -52,16 +63,16 @@ export default function CategoriesScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>Loading categories...</Text>
+        <Text style={styles.loadingText}>טוען קטגוריות...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Categories</Text>
+      <Text style={styles.title}>קטגוריות</Text>
       <Text style={styles.subtitle}>
-        Select a category to view products
+        בחר קטגוריה לצפייה במוצרים
       </Text>
 
       <FlatList

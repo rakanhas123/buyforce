@@ -2,9 +2,11 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 
+/* ===============================
+   Routes Imports
+================================ */
 import productsRoutes from "./routes/products.routes";
 import groupsRoutes from "./routes/groups.routes";
-import paymentsRoutes from "./routes/payment.routes";
 import authRoutes from "./routes/auth.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
 
@@ -12,28 +14,26 @@ import adminGroupsRoutes from "./routes/admin.groups.routes";
 import adminUsersRoutes from "./routes/admin.users.routes";
 import adminWishlistRoutes from "./routes/admin.wishlist.routes";
 
-import { dbHealthCheck } from "./db/db";
-import { webhookHandler } from "./routes/stripe-webhook";
+import paypalRoutes from "./payments/paypal.routes";
 
+import { dbHealthCheck } from "./db/db";
+
+/* ===============================
+   App Init
+================================ */
 const app = express();
 
 /* ===============================
    Middleware
 ================================ */
-app.use(cors({ 
-  origin: true, // Allow all origins in development
-  credentials: true 
-}));
-app.use(express.json());
-
-/* ===============================
-   Stripe Webhook (RAW BODY)
-================================ */
-app.post(
-  "/v1/payments/webhook",
-  express.raw({ type: "application/json" }),
-  webhookHandler
+app.use(
+  cors({
+    origin: true, // allow all in development
+    credentials: true,
+  })
 );
+
+app.use(express.json());
 
 /* ===============================
    API Routes
@@ -41,7 +41,7 @@ app.post(
 app.use("/api/products", productsRoutes);
 
 app.use("/v1/groups", groupsRoutes);
-app.use("/v1/payments", paymentsRoutes);
+app.use("/v1/payments/paypal", paypalRoutes);
 app.use("/v1/auth", authRoutes);
 app.use("/v1/wishlist", wishlistRoutes);
 
@@ -76,7 +76,8 @@ app.get("/v1/health", async (_req, res) => {
    Server Start
 ================================ */
 const port = Number(process.env.PORT || 3000);
-const host = process.env.HOST || '0.0.0.0';
+const host = process.env.HOST || "0.0.0.0";
+
 app.listen(port, host, () => {
   console.log(`✅ Server running on http://${host}:${port}`);
   console.log(`📱 For mobile device, use your computer's IP address`);

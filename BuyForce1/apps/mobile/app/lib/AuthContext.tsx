@@ -64,23 +64,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const register = async (fullName: string, email: string, phone: string, password: string) => {
+    console.log('🔐 Register started:', { fullName, email, phone });
     try {
+      console.log('📡 Calling authApi.register...');
       const response = await authApi.register({
-        fullName: fullName,
+        fullName,
         email,
         phone,
         password,
       });
+      console.log('✅ Register response received:', response);
       
       setUser(response.user);
       setToken(response.token);
       setAuthToken(response.token);
+      console.log('✅ State updated, user:', response.user.email, 'token exists:', !!response.token);
       
       // Save to AsyncStorage
       await AsyncStorage.setItem('authToken', response.token);
       await AsyncStorage.setItem('user', JSON.stringify(response.user));
+      console.log('✅ Saved to AsyncStorage');
     } catch (error) {
-      console.error('Registration failed:', error);
+      console.error('❌ Registration failed:', error);
       throw error;
     }
   };

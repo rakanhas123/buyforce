@@ -48,7 +48,7 @@ export default function ProductsScreen() {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/(tabs)/categories");
+      router.replace("/tabs/categories");
     }
   };
 

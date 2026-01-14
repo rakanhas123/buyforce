@@ -159,8 +159,19 @@ export const authApi = {
   },
 
   register: async (userData: RegisterData): Promise<AuthResponse> => {
-    const { data } = await api.post('/v1/auth/register', userData);
-    return data;
+    console.log('🔐 authApi.register called with:', userData.email);
+    try {
+      const { data } = await api.post('/v1/auth/register', {
+        fullName: userData.fullName,
+        email: userData.email,
+        password: userData.password,
+      });
+      console.log('✅ Register response received:', data);
+      return data;
+    } catch (error: any) {
+      console.error('❌ Register API error:', error.response?.data || error.message);
+      throw error;
+    }
   },
 
   logout: async (): Promise<void> => {

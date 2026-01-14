@@ -48,7 +48,7 @@ export default function GroupsScreen() {
     if (router.canGoBack()) {
       router.back();
     } else {
-      router.replace("/(tabs)/home");
+      router.replace("/tabs/home");
     }
   };
 
@@ -56,7 +56,7 @@ export default function GroupsScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>Loading groups...</Text>
+        <Text style={styles.loadingText}>טוען קבוצות...</Text>
       </View>
     );
   }
@@ -67,7 +67,7 @@ export default function GroupsScreen() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <Ionicons name="arrow-back" size={26} color="white" />
         </Pressable>
-        <Text style={styles.title}>Groups</Text>
+        <Text style={styles.title}>קבוצות</Text>
       </View>
 
       <FlatList
@@ -100,26 +100,26 @@ export default function GroupsScreen() {
               <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                 <Text style={styles.statusText}>
                   {item.status === "active"
-                    ? "Active"
+                    ? "פעילה"
                     : item.status === "pending"
-                    ? "Pending"
+                    ? "ממתינה"
                     : item.status === "completed"
-                    ? "Completed"
-                    : "Cancelled"}
+                    ? "הושלמה"
+                    : "בוטלה"}
                 </Text>
               </View>
 
               <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
               
               <Text style={styles.date}>
-                Created: {new Date(item.created_at).toLocaleDateString('en-US')}
+                נוצרה: {new Date(item.created_at).toLocaleDateString('he-IL')}
               </Text>
             </Pressable>
           );
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>No groups to display</Text>
+            <Text style={styles.emptyText}>אין קבוצות להצגה</Text>
           </View>
         }
       />

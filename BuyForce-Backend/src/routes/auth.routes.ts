@@ -58,7 +58,7 @@ router.post("/register", async (req, res) => {
     const user = created.rows[0] as { id: string; fullName: string; email: string; role: Role };
     const accessToken = signToken({ id: user.id, email: user.email, role: user.role });
 
-    return res.json({ user, accessToken });
+    return res.json({ user, token: accessToken });
   } catch (e: any) {
     return res.status(500).json({ error: e?.message ?? "Register failed" });
   }
@@ -101,7 +101,7 @@ router.post("/login", async (req, res) => {
     const user = { id: row.id, fullName: row.fullName, email: row.email, role: row.role };
     const accessToken = signToken({ id: row.id, email: row.email, role: row.role });
 
-    return res.json({ user, accessToken });
+    return res.json({ user, token: accessToken });
   } catch (e: any) {
     return res.status(500).json({ error: e?.message ?? "Login failed" });
   }

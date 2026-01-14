@@ -16,12 +16,12 @@ export default function Index() {
       if (isAuthenticated) {
         console.log('✅ Authenticated - navigating to home');
         setTimeout(() => {
-          router.replace("/(tabs)/home");
+          router.replace("/tabs/home");
         }, 100);
       } else {
         console.log('❌ Not authenticated - navigating to login');
         setTimeout(() => {
-          router.replace("/(auth)/login");
+          router.replace("/auth/login");
         }, 100);
       }
     } else {

@@ -21,17 +21,17 @@ export default function RootLayout() {
         >
           {/* Auth screens */}
           <Stack.Screen
-            name="(auth)/login"
+            name="auth/login"
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name="(auth)/register"
+            name="auth/register"
             options={{ headerShown: false }}
           />
 
           {/* Tabs: Home / Wishlist / Profile / Notifications */}
           <Stack.Screen
-            name="(tabs)"
+            name="tabs"
             options={{ headerShown: false }}
           />
 

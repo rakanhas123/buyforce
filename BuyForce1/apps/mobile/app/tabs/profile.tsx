@@ -5,7 +5,6 @@ import {
   TextInput,
   Pressable,
   ActivityIndicator,
-  ScrollView,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -30,14 +29,14 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     await logout();
-    router.replace("/(auth)/login");
+    router.replace("/auth/login");
   };
 
   if (isLoading) {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>Loading...</Text>
+        <Text style={styles.loadingText}>טוען...</Text>
       </View>
     );
   }
@@ -45,85 +44,85 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Text style={styles.notLoggedIn}>Not Logged In</Text>
+        <Text style={styles.notLoggedIn}>לא מחובר</Text>
         <Pressable
           style={styles.loginButton}
           onPress={() => router.push("/(auth)/login")}
         >
-          <Text style={styles.loginButtonText}>Login</Text>
+          <Text style={styles.loginButtonText}>התחבר</Text>
         </Pressable>
       </View>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Profile</Text>
+        <Text style={styles.title}>פרופיל</Text>
         {edit && (
           <Pressable onPress={() => setEdit(false)}>
-            <Text style={styles.edit}>Save</Text>
+            <Text style={styles.edit}>שמור</Text>
           </Pressable>
         )}
       </View>
 
       {/* User Info */}
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>User ID</Text>
+        <Text style={styles.infoTitle}>מזהה משתמש</Text>
         <Text style={styles.infoValue}>#{user.id}</Text>
       </View>
 
       {/* Fields */}
       <Field
-        label="Full Name"
+        label="שם מלא"
         value={name}
         setValue={setName}
         edit={edit}
       />
 
       <Field
-        label="Email"
+        label="אימייל"
         value={email}
         setValue={setEmail}
         edit={false} // Email can't be edited
       />
 
       <Field
-        label="Phone"
+        label="טלפון"
         value={phone}
         setValue={setPhone}
         edit={edit}
       />
 
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>Join Date</Text>
+        <Text style={styles.infoTitle}>תאריך הצטרפות</Text>
         <Text style={styles.infoValue}>
-          {new Date(user.created_at).toLocaleDateString("en-US")}
+          {new Date(user.created_at).toLocaleDateString("he-IL")}
         </Text>
       </View>
 
       {/* Links */}
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>My Orders</Text>
+        <Text style={styles.linkText}>ההזמנות שלי</Text>
       </Pressable>
 
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>Wishlist</Text>
+        <Text style={styles.linkText}>רשימת המשאלות</Text>
       </Pressable>
 
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>My Groups</Text>
+        <Text style={styles.linkText}>הקבוצות שלי</Text>
       </Pressable>
 
-      {/* Disconnect Button */}
+      {/* Logout */}
       <Pressable
-        style={styles.disconnectButton}
+        style={styles.logout}
         onPress={handleLogout}
       >
-        <Text style={styles.disconnectText}>Disconnect</Text>
+        <Text style={styles.logoutText}>התנתק</Text>
       </Pressable>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -159,10 +158,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0b0b0b",
-  },
-  contentContainer: {
     padding: 20,
-    paddingBottom: 100,
   },
   centered: {
     justifyContent: "center",
@@ -249,16 +245,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
-  disconnectButton: {
+  logout: {
     marginTop: 30,
-    backgroundColor: "#dc2626",
-    padding: 16,
+    backgroundColor: "#1a0f0f",
+    padding: 14,
     borderRadius: 12,
     alignItems: "center",
   },
-  disconnectText: {
-    color: "#fff",
+  logoutText: {
+    color: "#f87171",
     fontWeight: "700",
-    fontSize: 16,
   },
 });
