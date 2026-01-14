@@ -312,6 +312,31 @@ app.post('/api/payments/confirm-payment', async (req, res) => {
   }
 });
 
+// Update product images with real placeholders
+app.post('/api/admin/fix-images', async (req, res) => {
+  try {
+    const updates = [
+      { id: 1, name: 'Laptop', url: 'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=400' },
+      { id: 2, name: 'Phone', url: 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=400' },
+      { id: 3, name: 'Tablet', url: 'https://images.unsplash.com/photo-1561154464-82e9adf32764?w=400' },
+      { id: 4, name: 'Headphones', url: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400' },
+      { id: 5, name: 'Smartwatch', url: 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=400' },
+    ];
+    
+    for (const { id, url } of updates) {
+      await pool.query(
+        `UPDATE images SET image_url = $1 WHERE product_id = $2 AND is_main = true`,
+        [url, id]
+      );
+    }
+    
+    res.json({ success: true, message: 'Images updated successfully', count: updates.length });
+  } catch (err) {
+    console.error('Fix images error:', err);
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 const PORT = 3000;
 const HOST = '0.0.0.0';
 
