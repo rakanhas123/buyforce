@@ -115,12 +115,12 @@ export default function ProfileScreen() {
         <Text style={styles.linkText}>My Groups</Text>
       </Pressable>
 
-      {/* Logout */}
+      {/* Disconnect Button */}
       <Pressable
-        style={styles.logout}
+        style={styles.disconnectButton}
         onPress={handleLogout}
       >
-        <Text style={styles.logoutText}>Logout</Text>
+        <Text style={styles.disconnectText}>Disconnect</Text>
       </Pressable>
     </View>
   );
@@ -245,15 +245,16 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 16,
   },
-  logout: {
+  disconnectButton: {
     marginTop: 30,
-    backgroundColor: "#1a0f0f",
-    padding: 14,
+    backgroundColor: "#dc2626",
+    padding: 16,
     borderRadius: 12,
     alignItems: "center",
   },
-  logoutText: {
-    color: "#f87171",
+  disconnectText: {
+    color: "#fff",
     fontWeight: "700",
+    fontSize: 16,
   },
 });
