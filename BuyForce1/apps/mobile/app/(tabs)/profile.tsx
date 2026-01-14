@@ -36,7 +36,7 @@ export default function ProfileScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>טוען...</Text>
+        <Text style={styles.loadingText}>Loading...</Text>
       </View>
     );
   }
@@ -44,12 +44,12 @@ export default function ProfileScreen() {
   if (!user) {
     return (
       <View style={[styles.container, styles.centered]}>
-        <Text style={styles.notLoggedIn}>לא מחובר</Text>
+        <Text style={styles.notLoggedIn}>Not Logged In</Text>
         <Pressable
           style={styles.loginButton}
           onPress={() => router.push("/(auth)/login")}
         >
-          <Text style={styles.loginButtonText}>התחבר</Text>
+          <Text style={styles.loginButtonText}>Login</Text>
         </Pressable>
       </View>
     );
@@ -59,60 +59,60 @@ export default function ProfileScreen() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>פרופיל</Text>
+        <Text style={styles.title}>Profile</Text>
         {edit && (
           <Pressable onPress={() => setEdit(false)}>
-            <Text style={styles.edit}>שמור</Text>
+            <Text style={styles.edit}>Save</Text>
           </Pressable>
         )}
       </View>
 
       {/* User Info */}
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>מזהה משתמש</Text>
+        <Text style={styles.infoTitle}>User ID</Text>
         <Text style={styles.infoValue}>#{user.id}</Text>
       </View>
 
       {/* Fields */}
       <Field
-        label="שם מלא"
+        label="Full Name"
         value={name}
         setValue={setName}
         edit={edit}
       />
 
       <Field
-        label="אימייל"
+        label="Email"
         value={email}
         setValue={setEmail}
         edit={false} // Email can't be edited
       />
 
       <Field
-        label="טלפון"
+        label="Phone"
         value={phone}
         setValue={setPhone}
         edit={edit}
       />
 
       <View style={styles.infoCard}>
-        <Text style={styles.infoTitle}>תאריך הצטרפות</Text>
+        <Text style={styles.infoTitle}>Join Date</Text>
         <Text style={styles.infoValue}>
-          {new Date(user.created_at).toLocaleDateString("he-IL")}
+          {new Date(user.created_at).toLocaleDateString("en-US")}
         </Text>
       </View>
 
       {/* Links */}
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>ההזמנות שלי</Text>
+        <Text style={styles.linkText}>My Orders</Text>
       </Pressable>
 
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>רשימת המשאלות</Text>
+        <Text style={styles.linkText}>Wishlist</Text>
       </Pressable>
 
       <Pressable style={styles.link}>
-        <Text style={styles.linkText}>הקבוצות שלי</Text>
+        <Text style={styles.linkText}>My Groups</Text>
       </Pressable>
 
       {/* Logout */}
@@ -120,7 +120,7 @@ export default function ProfileScreen() {
         style={styles.logout}
         onPress={handleLogout}
       >
-        <Text style={styles.logoutText}>התנתק</Text>
+        <Text style={styles.logoutText}>Logout</Text>
       </Pressable>
     </View>
   );
