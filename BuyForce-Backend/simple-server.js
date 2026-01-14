@@ -159,7 +159,7 @@ app.get('/api/products', async (req, res) => {
       specs: p.specs || [],
     }));
     
-    res.json(products);
+    res.json({ source: 'db', items: products });
   } catch (err) {
     console.error('Products error:', err);
     res.status(500).json({ error: err.message });
