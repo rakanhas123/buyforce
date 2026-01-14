@@ -108,7 +108,7 @@ export default function GroupsScreen() {
           onPress={() => setFilter("all")}
         >
           <Text style={[styles.filterText, filter === "all" && styles.filterTextActive]}>
-            הכל ({groups.length})
+            All ({groups.length})
           </Text>
         </Pressable>
         <Pressable
@@ -116,7 +116,7 @@ export default function GroupsScreen() {
           onPress={() => setFilter("active")}
         >
           <Text style={[styles.filterText, filter === "active" && styles.filterTextActive]}>
-            פעילות ({groups.filter(g => g.status === "active").length})
+            Active ({groups.filter(g => g.status === "active").length})
           </Text>
         </Pressable>
         <Pressable
@@ -124,7 +124,7 @@ export default function GroupsScreen() {
           onPress={() => setFilter("completed")}
         >
           <Text style={[styles.filterText, filter === "completed" && styles.filterTextActive]}>
-            הושלמו ({groups.filter(g => g.status === "completed").length})
+            Completed ({groups.filter(g => g.status === "completed").length})
           </Text>
         </Pressable>
       </View>
