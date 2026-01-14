@@ -823,59 +823,96 @@
             document.getElementById('paymentAmount').textContent = `$${price.toFixed(2)}`;
             document.getElementById('paymentProductName').textContent = name;
             document.getElementById('paymentModal').classList.add('active');
+            
+            // Enable the Pay Now button
+            const payButton = document.querySelector('#paymentModal .btn-primary[onclick="processPayment()"]');
+            if (payButton) {
+                payButton.disabled = false;
+            }
         }
 
         function closePaymentModal() {
             document.getElementById('paymentModal').classList.remove('active');
+            selectedProduct = null;
         }
 
         function setPaymentMethod(method) {
             currentPaymentMethod = method;
+            console.log('Payment method set to:', method);
         }
 
         async function processPayment() {
-            if (!selectedProduct) return;
+            if (!selectedProduct) {
+                alert('❌ Please select a product first');
+                return;
+            }
+
+            if (!currentUser) {
+                alert('❌ You must be logged in to make a payment');
+                return;
+            }
 
             const loading = document.getElementById('paymentLoading');
+            const payButton = document.querySelector('#paymentModal .btn-primary[onclick="processPayment()"]');
+            
+            // Disable button and show loading
+            if (payButton) payButton.disabled = true;
             loading.style.display = 'block';
 
             try {
+                console.log('Processing payment with method:', currentPaymentMethod);
+                console.log('Selected product:', selectedProduct);
+
                 const response = await fetch('http://localhost:3000/api/payments/group-join', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+                    },
                     body: JSON.stringify({
                         productId: selectedProduct.id,
                         groupId: 'group-' + selectedProduct.id,
                         amount: selectedProduct.price,
                         paymentMethod: currentPaymentMethod,
-                        userId: currentUser.email
+                        userId: currentUser.id || currentUser.email
                     })
                 });
 
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.message || `HTTP ${response.status}`);
+                }
+
                 const data = await response.json();
 
-                if (data.success) {
+                if (data.success || data.transactionId) {
                     // Save joined group
+                    const transactionId = data.transactionId || data.paymentIntentId || 'TXN-' + Date.now();
                     const groupJoin = {
                         productId: selectedProduct.id,
                         productName: selectedProduct.name,
                         amount: selectedProduct.price,
                         date: new Date().toLocaleDateString(),
-                        transactionId: data.paymentIntentId,
+                        transactionId: transactionId,
                         status: 'completed'
                     };
                     joinedGroups.push(groupJoin);
                     localStorage.setItem('joinedGroups', JSON.stringify(joinedGroups));
                     
-                    alert(`✅ Payment Successful!\n\nTransaction ID: ${data.paymentIntentId}\nAmount: $${data.amount}\nMethod: ${currentPaymentMethod.toUpperCase()}`);
+                    alert(`✅ Payment Successful!\n\nTransaction ID: ${transactionId}\nAmount: $${data.amount || selectedProduct.price}\nMethod: ${currentPaymentMethod.toUpperCase()}`);
                     closePaymentModal();
+                    
+                    // Refresh products list to update UI
+                    loadProducts();
                 } else {
-                    alert('❌ Payment Failed: ' + (data.message || 'Please try again'));
+                    alert('❌ Payment Failed: ' + (data.message || data.error || 'Please try again'));
                 }
             } catch (error) {
+                console.error('Payment error:', error);
                 alert('❌ Error: ' + error.message);
             } finally {
                 loading.style.display = 'none';
+                if (payButton) payButton.disabled = false;
             }
         }
 

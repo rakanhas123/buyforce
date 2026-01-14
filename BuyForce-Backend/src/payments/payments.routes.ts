@@ -74,8 +74,16 @@ router.post('/paypal/capture', async (req, res) => {
 // ============================
 router.post('/group-join', async (req, res) => {
   try {
-    const { productId, groupId, amount, paymentMethod } = req.body;
-    const userId = req.user?.id || 'guest-' + uuid(); // Use authenticated user or generate guest ID
+    const { productId, groupId, amount, paymentMethod, userId } = req.body;
+    
+    // Validate required fields
+    if (!amount || !paymentMethod) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Amount and payment method are required' 
+      });
+    }
+
     const transactionId = uuid();
 
     // For demo purposes, we'll accept payment with both methods
@@ -83,9 +91,11 @@ router.post('/group-join', async (req, res) => {
 
     if (paymentMethod === 'stripe') {
       // TODO: Integrate with Stripe API
+      console.log('Processing Stripe payment for amount:', amount);
       // For now, we'll simulate successful payment
     } else if (paymentMethod === 'paypal') {
       // TODO: Integrate with PayPal API
+      console.log('Processing PayPal payment for amount:', amount);
       // For now, we'll simulate successful payment
     }
 
@@ -100,7 +110,7 @@ router.post('/group-join', async (req, res) => {
          VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
         [
           transactionId,
-          userId,
+          userId || 'guest-' + uuid(),
           amount,
           'group_join',
           'COMPLETED',
@@ -109,13 +119,14 @@ router.post('/group-join', async (req, res) => {
         ]
       );
     } catch (dbErr) {
-      console.log('Note: Transaction table may not exist, skipping record');
+      console.log('Note: Transaction table may not exist, skipping record:', dbErr);
     }
 
-    // Return success response
+    // Return success response with required fields
     res.json({
       success: true,
       transactionId,
+      paymentIntentId: transactionId, // For compatibility
       amount,
       productId,
       groupId,
