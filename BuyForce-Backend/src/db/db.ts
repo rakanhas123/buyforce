@@ -7,11 +7,11 @@ for (const k of required) {
 }
 
 export const pool = new Pool({
-  host:"localhost",
-  port: 5433,
-  database: "buyforce",
-  user: "postgres",
-  password: "rakan1",
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || "5432"),
+  database: process.env.DB_NAME,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
 });
 
 export async function dbHealthCheck(): Promise<boolean> {

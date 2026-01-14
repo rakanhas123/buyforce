@@ -7,7 +7,7 @@ const router = Router();
 
 type Role = "USER" | "ADMIN";
 
-function signToken(payload: { id: string; email: string; role: Role }) {
+function signToken(payload: { id: number; email: string; role: Role }) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET missing in .env");
 
@@ -15,7 +15,7 @@ function signToken(payload: { id: string; email: string; role: Role }) {
   return jwt.sign(
     { email: payload.email, role: payload.role }, // payload
     secret,
-    { expiresIn: "7d", subject: payload.id }
+    { expiresIn: "7d", subject: String(payload.id) }
   );
 }
 
@@ -48,17 +48,17 @@ router.post("/register", async (req, res) => {
     // role defaults to USER in DB (recommended)
     const created = await pool.query(
       `
-      INSERT INTO users ("fullName", email, password_hash)
+      INSERT INTO users (full_name, email, password)
       VALUES ($1,$2,$3)
-      RETURNING id, "fullName", email, role
+      RETURNING id, full_name, email
       `,
       [fullName, normalizedEmail, passwordHash]
     );
 
-    const user = created.rows[0] as { id: string; fullName: string; email: string; role: Role };
-    const accessToken = signToken({ id: user.id, email: user.email, role: user.role });
+    const user = created.rows[0] as { id: number; full_name: string; email: string };
+    const accessToken = signToken({ id: user.id, email: user.email, role: 'USER' });
 
-    return res.json({ user, accessToken });
+    return res.json({ user: { id: user.id, fullName: user.full_name, email: user.email }, token: accessToken });
   } catch (e: any) {
     return res.status(500).json({ error: e?.message ?? "Register failed" });
   }
@@ -70,6 +70,8 @@ router.post("/register", async (req, res) => {
  */
 router.post("/login", async (req, res) => {
   const { email, password } = req.body as { email?: string; password?: string };
+  
+  console.log('🔐 Login attempt:', { email, passwordLength: password?.length });
 
   if (!email || !password) {
     return res.status(400).json({ error: "email and password are required" });
@@ -77,31 +79,38 @@ router.post("/login", async (req, res) => {
 
   try {
     const normalizedEmail = email.toLowerCase().trim();
+    console.log('📧 Normalized email:', normalizedEmail);
 
     const result = await pool.query(
-      `SELECT id, "fullName", email, role, password_hash FROM users WHERE email=$1`,
+      `SELECT id, full_name, email, password FROM users WHERE email=$1`,
       [normalizedEmail]
     );
+    
+    console.log('🔍 Query result:', { found: result.rowCount, email: normalizedEmail });
 
     if ((result.rowCount ?? 0) === 0) {
+      console.log('❌ User not found');
       return res.status(401).json({ error: "Invalid credentials" });
     }
 
     const row = result.rows[0] as {
-      id: string;
-      fullName: string;
+      id: number;
+      full_name: string;
       email: string;
-      role: Role;
-      password_hash: string;
+      password: string;
     };
+    
+    console.log('👤 User found:', { id: row.id, email: row.email, hasPassword: !!row.password });
 
-    const ok = await bcrypt.compare(password, row.password_hash);
+    const ok = await bcrypt.compare(password, row.password);
+    console.log('🔑 Password check:', ok);
+    
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-    const user = { id: row.id, fullName: row.fullName, email: row.email, role: row.role };
-    const accessToken = signToken({ id: row.id, email: row.email, role: row.role });
+    const user = { id: row.id, fullName: row.full_name, email: row.email };
+    const accessToken = signToken({ id: row.id, email: row.email, role: 'USER' });
 
-    return res.json({ user, accessToken });
+    return res.json({ user, token: accessToken });
   } catch (e: any) {
     return res.status(500).json({ error: e?.message ?? "Login failed" });
   }

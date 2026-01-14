@@ -17,6 +17,23 @@ const pool = new Pool({
 
 const JWT_SECRET = 'buyforce-super-secret-jwt-key-2024-change-in-production';
 
+// Pool error handling
+pool.on('error', (err, client) => {
+  console.error('❌ Unexpected error on idle database client', err);
+  process.exit(-1);
+});
+
+// Test database connection
+pool.query('SELECT NOW(), current_database() as db, COUNT(*) as user_count FROM users', (err, result) => {
+  if (err) {
+    console.error('❌ Database connection test failed:', err.message);
+    console.error('Full error:', err);
+  } else {
+    console.log('✅ Database connected:', result.rows[0].db);
+    console.log('📊 Users in database:', result.rows[0].user_count);
+  }
+});
+
 // Middleware
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
@@ -36,11 +53,15 @@ app.post('/v1/auth/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     
+    console.log(`📝 Login attempt for: ${email}`);
+    
     if (!email || !password) {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
+    console.log('🔍 Querying database for user...');
     const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    console.log(`✅ Query successful, found ${result.rows.length} users`);
     
     if (result.rows.length === 0) {
       return res.status(401).json({ error: 'Invalid credentials' });
@@ -67,7 +88,8 @@ app.post('/v1/auth/login', async (req, res) => {
       token,
     });
   } catch (err) {
-    console.error('Login error:', err);
+    console.error('❌ Login error:', err);
+    console.error('Stack trace:', err.stack);
     res.status(500).json({ error: err.message });
   }
 });
