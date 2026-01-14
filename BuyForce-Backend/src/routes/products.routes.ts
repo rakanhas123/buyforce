@@ -6,11 +6,14 @@ const router = Router();
 /**
  * GET /api/products
  * Returns products with their main images
+ * Query params: categoryId (optional) - filter by category
  */
-router.get("/", async (_req, res) => {
+router.get("/", async (req, res) => {
   try {
-    // Get products with their main image and category
-    const result = await pool.query(`
+    const { categoryId } = req.query;
+    
+    // Build query with optional category filter
+    let query = `
       SELECT 
         p.id,
         p.name,
@@ -34,9 +37,17 @@ router.get("/", async (_req, res) => {
         ) as images
       FROM products p
       LEFT JOIN categories c ON p.category_id = c.id
-      ORDER BY p.id DESC
-      LIMIT 50
-    `);
+    `;
+    
+    const params: any[] = [];
+    if (categoryId) {
+      query += ` WHERE p.category_id = $1`;
+      params.push(categoryId);
+    }
+    
+    query += ` ORDER BY p.id DESC LIMIT 50`;
+    
+    const result = await pool.query(query, params);
 
     // Format the response
     const items = result.rows.map(row => ({
