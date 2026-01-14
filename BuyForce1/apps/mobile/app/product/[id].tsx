@@ -35,14 +35,14 @@ export default function ProductScreen() {
       const productId = Number(id);
       
       if (isNaN(productId)) {
-        setError("מזהה מוצר לא תקין");
+        setError("Invalid product ID");
         return;
       }
 
       const data = await productsApi.getById(productId);
       setProduct(data);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "שגיאה בטעינת המוצר");
+      setError(err?.response?.data?.message || "Error loading product");
     } finally {
       setLoading(false);
     }
@@ -52,7 +52,7 @@ export default function ProductScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>טוען מוצר...</Text>
+        <Text style={styles.loadingText}>Loading product...</Text>
       </SafeAreaView>
     );
   }
@@ -60,12 +60,12 @@ export default function ProductScreen() {
   if (error || !product) {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
-        <Text style={styles.error}>{error || "מוצר לא נמצא"}</Text>
+        <Text style={styles.error}>{error || "Product not found"}</Text>
         <Pressable
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <Text style={styles.backButtonText}>חזור</Text>
+          <Text style={styles.backButtonText}>Back</Text>
         </Pressable>
       </SafeAreaView>
     );
@@ -109,16 +109,16 @@ export default function ProductScreen() {
         {/* Category & Stock */}
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>קטגוריה</Text>
-            <Text style={styles.infoValue}>{product.category?.name || "ללא קטגוריה"}</Text>
+            <Text style={styles.infoLabel}>Category</Text>
+            <Text style={styles.infoValue}>{product.category?.name || "No category"}</Text>
           </View>
           <View style={styles.infoItem}>
-            <Text style={styles.infoLabel}>מלאי</Text>
+            <Text style={styles.infoLabel}>Stock</Text>
             <Text style={[
               styles.infoValue,
               product.stock_quantity > 0 ? styles.inStock : styles.outOfStock
             ]}>
-              {product.stock_quantity > 0 ? `${product.stock_quantity} במלאי` : "אזל מהמלאי"}
+              {product.stock_quantity > 0 ? `${product.stock_quantity} in stock` : "Out of stock"}
             </Text>
           </View>
         </View>
@@ -126,7 +126,7 @@ export default function ProductScreen() {
         {/* Specs */}
         {product.specs && product.specs.length > 0 && (
           <View style={styles.specsSection}>
-            <Text style={styles.sectionTitle}>מפרטים</Text>
+            <Text style={styles.sectionTitle}>Specifications</Text>
             {product.specs.map((spec, index) => (
               <View key={index} style={styles.specItem}>
                 <Text style={styles.specKey}>{spec.spec_key}</Text>
@@ -139,7 +139,7 @@ export default function ProductScreen() {
         {/* Additional Images */}
         {product.images && product.images.length > 1 && (
           <View style={styles.imagesSection}>
-            <Text style={styles.sectionTitle}>תמונות נוספות</Text>
+            <Text style={styles.sectionTitle}>More Images</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false}>
               {product.images.map((img, index) => (
                 <Image
@@ -160,18 +160,10 @@ export default function ProductScreen() {
           product.stock_quantity === 0 && styles.joinButtonDisabled
         ]}
         disabled={product.stock_quantity === 0}
-        onPress={() =>
-          router.push({
-            pathname: "/group/[id]",
-            params: {
-              id: product.id.toString(),
-              productName: product.name,
-            },
-          })
-        }
+        onPress={() => router.push("/tabs/groups")}
       >
         <Text style={styles.joinText}>
-          {product.stock_quantity > 0 ? "הצטרף לקבוצה" : "אזל מהמלאי"}
+          {product.stock_quantity > 0 ? "Join Group" : "Out of stock"}
         </Text>
       </Pressable>
 

@@ -63,16 +63,16 @@ export default function CategoriesScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>טוען קטגוריות...</Text>
+        <Text style={styles.loadingText}>Loading categories...</Text>
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>קטגוריות</Text>
+      <Text style={styles.title}>Categories</Text>
       <Text style={styles.subtitle}>
-        בחר קטגוריה לצפייה במוצרים
+        Select a category to view products
       </Text>
 
       <FlatList
@@ -105,13 +105,13 @@ export default function CategoriesScreen() {
             <Text style={styles.cardTitle}>{item.name}</Text>
 
             <View style={styles.selectBadge}>
-              <Text style={styles.selectText}>בחר</Text>
+              <Text style={styles.selectText}>Select</Text>
             </View>
           </Pressable>
         )}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>אין קטגוריות להצגה</Text>
+            <Text style={styles.emptyText}>No categories to display</Text>
           </View>
         }
       />

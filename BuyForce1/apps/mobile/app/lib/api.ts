@@ -203,17 +203,17 @@ export const productsApi = {
 // Groups API
 export const groupsApi = {
   getAll: async (): Promise<Group[]> => {
-    const { data } = await api.get('/api/groups');
-    return data;
+    const { data } = await api.get('/v1/groups');
+    return data.items || data;
   },
 
   getById: async (id: number): Promise<Group> => {
-    const { data } = await api.get(`/api/groups/${id}`);
+    const { data } = await api.get(`/v1/groups/${id}`);
     return data;
   },
 
   join: async (groupId: number): Promise<void> => {
-    await api.post(`/api/groups/${groupId}/join`);
+    await api.post(`/v1/groups/${groupId}/join`);
   },
 };
 

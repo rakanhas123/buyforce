@@ -56,7 +56,7 @@ export default function GroupsScreen() {
     return (
       <View style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>טוען קבוצות...</Text>
+        <Text style={styles.loadingText}>Loading groups...</Text>
       </View>
     );
   }
@@ -67,7 +67,7 @@ export default function GroupsScreen() {
         <Pressable style={styles.backButton} onPress={handleBack}>
           <Ionicons name="arrow-back" size={26} color="white" />
         </Pressable>
-        <Text style={styles.title}>קבוצות</Text>
+        <Text style={styles.title}>Groups</Text>
       </View>
 
       <FlatList
@@ -100,26 +100,26 @@ export default function GroupsScreen() {
               <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                 <Text style={styles.statusText}>
                   {item.status === "active"
-                    ? "פעילה"
+                    ? "Active"
                     : item.status === "pending"
-                    ? "ממתינה"
+                    ? "Pending"
                     : item.status === "completed"
-                    ? "הושלמה"
-                    : "בוטלה"}
+                    ? "Completed"
+                    : "Cancelled"}
                 </Text>
               </View>
 
               <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
               
               <Text style={styles.date}>
-                נוצרה: {new Date(item.created_at).toLocaleDateString('he-IL')}
+                Created: {new Date(item.created_at).toLocaleDateString('en-US')}
               </Text>
             </Pressable>
           );
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>אין קבוצות להצגה</Text>
+            <Text style={styles.emptyText}>No groups to display</Text>
           </View>
         }
       />

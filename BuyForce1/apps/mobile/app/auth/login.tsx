@@ -3,50 +3,42 @@ import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert 
 import { useRouter } from "expo-router";
 import { useAuth } from "../lib/AuthContext";
 
-export default function RegisterPage() {
+export default function LoginPage() {
   const router = useRouter();
-  const { register, isAuthenticated, isLoading } = useAuth();
+  const { login, isAuthenticated, isLoading } = useAuth();
 
-  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   // Auto-navigate when authentication succeeds
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      console.log('✅ Registration successful, navigating to home...');
+      console.log('✅ Login successful, navigating to home...');
       router.replace("/tabs/home");
     }
   }, [isAuthenticated, isLoading]);
 
   const handleSubmit = async () => {
-    console.log('📝 Form data:', { name, email, phone, password, confirmPassword });
+    console.log('📝 Login form data:', { email, password: '***' });
     
-    if (password !== confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
-      return;
-    }
-
-    if (!name || !email || !password) {
-      console.log('❌ Validation failed:', { name, email, password });
-      Alert.alert("Error", "Please fill all required fields");
+    if (!email || !password) {
+      console.log('❌ Validation failed:', { email, password });
+      Alert.alert("Error", "Please fill all fields");
       return;
     }
 
     setLoading(true);
 
     try {
-      console.log('🚀 Calling register with:', { name, email, phone, password });
-      await register(name, email, phone, password);
-      Alert.alert("Success", "Account created successfully!");
+      console.log(' Calling login with:', { email });
+      await login(email, password);
+      Alert.alert("Success", "Logged in successfully!");
       // Don't manually navigate - index.tsx will handle routing based on auth state
     } catch (err: any) {
-      console.error('❌ Register error:', err);
-      const errorMessage = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Registration failed";
-      Alert.alert("Registration Failed", errorMessage);
+      console.error('❌ Login error:', err);
+      const errorMessage = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Login failed";
+      Alert.alert("Login Failed", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -55,21 +47,7 @@ export default function RegisterPage() {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.formContainer}>
-        <Text style={styles.title}>Create your account 🚀</Text>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Full Name</Text>
-          <TextInput
-            style={styles.input}
-            value={name}
-            onChangeText={(text) => {
-              console.log('✍️ Name changed:', text);
-              setName(text);
-            }}
-            placeholder="Your name"
-            autoCapitalize="words"
-          />
-        </View>
+        <Text style={styles.title}> Welcome back! </Text>
 
         <View style={styles.inputContainer}>
           <Text style={styles.label}>Email</Text>
@@ -83,20 +61,7 @@ export default function RegisterPage() {
             placeholder="you@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Phone (Optional)</Text>
-          <TextInput
-            style={styles.input}
-            value={phone}
-            onChangeText={(text) => {
-              console.log('✍️ Phone changed:', text);
-              setPhone(text);
-            }}
-            placeholder="052-1234567"
-            keyboardType="phone-pad"
+            autoComplete="email"
           />
         </View>
 
@@ -106,44 +71,31 @@ export default function RegisterPage() {
             style={styles.input}
             value={password}
             onChangeText={(text) => {
-              console.log('✍️ Password changed:', text);
+              console.log('✍️ Password changed');
               setPassword(text);
             }}
             placeholder="••••••••"
             secureTextEntry
-          />
-        </View>
-
-        <View style={styles.inputContainer}>
-          <Text style={styles.label}>Confirm Password</Text>
-          <TextInput
-            style={styles.input}
-            value={confirmPassword}
-            onChangeText={(text) => {
-              console.log('✍️ Confirm Password changed:', text);
-              setConfirmPassword(text);
-            }}
-            placeholder="••••••••"
-            secureTextEntry
+            autoComplete="password"
           />
         </View>
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
           onPress={() => {
-            console.log('🔘 Register button pressed!');
+            console.log(' Login button pressed!');
             handleSubmit();
           }}
           disabled={loading}
         >
           <Text style={styles.buttonText}>
-            {loading ? "Creating account..." : "Register"}
+            {loading ? "Logging in..." : "Login"}
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/auth/login")}>
+        <TouchableOpacity onPress={() => router.push("/auth/register")}>
           <Text style={styles.linkText}>
-            Already have an account? <Text style={styles.linkBold}>Login</Text>
+            Don't have an account? <Text style={styles.linkBold}>Register</Text>
           </Text>
         </TouchableOpacity>
       </View>

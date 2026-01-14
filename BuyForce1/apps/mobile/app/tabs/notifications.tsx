@@ -18,23 +18,23 @@ type NotificationItem = {
 const DEMO_NOTIFICATIONS: NotificationItem[] = [
   {
     id: 1,
-    title: "🎉 הקנייה הצליחה!",
-    message: "המוצר AirPods Pro הגיע ליעד הקבוצתי 🎧",
-    date: "היום",
+    title: " Purchase Successful!",
+    message: "AirPods Pro group goal reached 🎧",
+    date: "Today",
     read: false,
   },
   {
     id: 2,
-    title: "🔥 כמעט שם",
-    message: "ל-Nike Air Force 1 חסרים רק עוד כמה מצטרפים",
-    date: "אתמול",
+    title: "Almost There",
+    message: "Nike Air Force 1 needs just a few more members",
+    date: "Yesterday",
     read: true,
   },
   {
     id: 3,
-    title: "💸 ירידת מחיר",
-    message: "מחיר ה-Galaxy Watch ירד!",
-    date: "לפני 3 ימים",
+    title: " Price Drop",
+    message: "Galaxy Watch price dropped!",
+    date: "3 days ago",
     read: true,
   },
 ];
@@ -80,7 +80,7 @@ export default function NotificationsScreen() {
         contentContainerStyle={{ paddingBottom: 20 }}
         ListEmptyComponent={
           <Text style={styles.empty}>
-            אין התראות חדשות 🔔
+            No new notifications 
           </Text>
         }
       />

@@ -6,6 +6,7 @@ import cors from "cors";
    Routes Imports
 ================================ */
 import productsRoutes from "./routes/products.routes";
+import categoriesRoutes from "./routes/categories.routes";
 import groupsRoutes from "./routes/groups.routes";
 import authRoutes from "./routes/auth.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
@@ -39,6 +40,7 @@ app.use(express.json());
    API Routes
 ================================ */
 app.use("/api/products", productsRoutes);
+app.use("/api/categories", categoriesRoutes);
 
 app.use("/v1/groups", groupsRoutes);
 app.use("/v1/payments/paypal", paypalRoutes);

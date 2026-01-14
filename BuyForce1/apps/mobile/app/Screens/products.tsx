@@ -56,7 +56,7 @@ export default function ProductsScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>טוען מוצרים...</Text>
+        <Text style={styles.loadingText}>Loading products...</Text>
       </SafeAreaView>
     );
   }
@@ -67,9 +67,9 @@ export default function ProductsScreen() {
         <Ionicons name="arrow-back" size={26} color="white" />
       </Pressable>
 
-      <Text style={styles.title}>מוצרים</Text>
+      <Text style={styles.title}>Products</Text>
       <Text style={styles.subtitle}>
-        {categoryId ? `קטגוריה #${categoryId}` : "כל המוצרים"}
+        {categoryId ? `Category #${categoryId}` : "All Products"}
       </Text>
 
       <FlatList
@@ -105,8 +105,8 @@ export default function ProductsScreen() {
                 <Text style={styles.price}>₪{price.toFixed(2)}</Text>
                 <Text style={styles.stock}>
                   {item.stock_quantity > 0 
-                    ? `${item.stock_quantity} במלאי` 
-                    : "אזל מהמלאי"}
+                    ? `${item.stock_quantity} in stock` 
+                    : "Out of stock"}
                 </Text>
               </Pressable>
               
@@ -118,7 +118,7 @@ export default function ProductsScreen() {
                 onPress={() => router.push(`/product/${item.id}`)}
               >
                 <Text style={styles.detailsButtonText}>
-                  צפה בפרטים
+                  View Details
                 </Text>
               </Pressable>
             </View>
@@ -126,7 +126,7 @@ export default function ProductsScreen() {
         }}
         ListEmptyComponent={
           <View style={styles.empty}>
-            <Text style={styles.emptyText}>אין מוצרים בקטגוריה זו</Text>
+            <Text style={styles.emptyText}>No products in this category</Text>
           </View>
         }
       />

@@ -216,6 +216,33 @@ export default function HomeScreen() {
 
   const filteredProducts = products.filter(p => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
+    
+    // Category filter
+    if (selectedCategory !== "all") {
+      const categoryName = p.category?.name?.toLowerCase() || "";
+      const productName = p.name.toLowerCase();
+      
+      if (selectedCategory === "electronics") {
+        const electronicsKeywords = ["laptop", "computer", "screen", "monitor", "mouse", "keyboard", "headphone", "speaker", "camera"];
+        const matchesElectronics = electronicsKeywords.some(keyword => 
+          categoryName.includes(keyword) || productName.includes(keyword)
+        );
+        if (!matchesElectronics) return false;
+      } else if (selectedCategory === "mobile") {
+        const mobileKeywords = ["phone", "mobile", "iphone", "samsung", "tablet", "ipad"];
+        const matchesMobile = mobileKeywords.some(keyword => 
+          categoryName.includes(keyword) || productName.includes(keyword)
+        );
+        if (!matchesMobile) return false;
+      } else if (selectedCategory === "computer") {
+        const computerKeywords = ["laptop", "computer", "macbook", "pc", "desktop", "keyboard", "mouse", "monitor", "webcam"];
+        const matchesComputer = computerKeywords.some(keyword => 
+          categoryName.includes(keyword) || productName.includes(keyword)
+        );
+        if (!matchesComputer) return false;
+      }
+    }
+    
     return matchSearch;
   });
 
@@ -439,7 +466,7 @@ export default function HomeScreen() {
     
     const price = parseFloat(item.price?.toString() || '0');
     const isInWishlist = wishlist.includes(item.id);
-    const inStock = item.stock > 0;
+    const inStock = (item.stock_quantity || item.stock || 0) > 0;
     const discount = Math.floor(Math.random() * 20) + 5;
     const groups = productGroups[item.id] || [];
 
@@ -466,7 +493,7 @@ export default function HomeScreen() {
           {/* Stock Badge */}
           <View style={[styles.stockBadge, !inStock && styles.outOfStockBadge]}>
             <Text style={styles.badgeText}>
-              {inStock ? `${item.stock} in stock` : "Out"}
+              {inStock ? `${item.stock_quantity || item.stock || 0} in stock` : "Out"}
             </Text>
           </View>
 
