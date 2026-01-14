@@ -5,6 +5,7 @@ import {
   TextInput,
   Pressable,
   ActivityIndicator,
+  ScrollView,
 } from "react-native";
 import { useState, useEffect } from "react";
 import { useRouter } from "expo-router";
@@ -56,7 +57,7 @@ export default function ProfileScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.title}>Profile</Text>
@@ -122,7 +123,7 @@ export default function ProfileScreen() {
       >
         <Text style={styles.disconnectText}>Disconnect</Text>
       </Pressable>
-    </View>
+    </ScrollView>
   );
 }
 
@@ -158,7 +159,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#0b0b0b",
+  },
+  contentContainer: {
     padding: 20,
+    paddingBottom: 100,
   },
   centered: {
     justifyContent: "center",
