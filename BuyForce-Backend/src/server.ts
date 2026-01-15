@@ -1,6 +1,6 @@
 import "dotenv/config";
-import express from "express";
-import cors from "cors";
+import * as express from "express";
+import * as cors from "cors";
 
 import productsRoutes from "./routes/products.routes";
 import groupsRoutes from "./routes/groups.routes";

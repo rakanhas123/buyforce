@@ -1,6 +1,5 @@
 import { Router } from "express";
-import jwt from "jsonwebtoken";
-
+import * as jwt from "jsonwebtoken";
 const router = Router();
 
 router.post("/login", async (req, res) => {

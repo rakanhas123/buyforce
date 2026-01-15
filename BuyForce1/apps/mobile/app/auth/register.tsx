@@ -1,48 +1,52 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
+import { useAuth } from "../lib/AuthContext";
 
 export default function RegisterPage() {
   const router = useRouter();
+  const { register, isAuthenticated, isLoading } = useAuth();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Auto-navigate when authentication succeeds
+  useEffect(() => {
+    if (!isLoading && isAuthenticated) {
+      console.log('✅ Registration successful, navigating to home...');
+      router.replace("/tabs/home");
+    }
+  }, [isAuthenticated, isLoading]);
+
   const handleSubmit = async () => {
+    console.log('📝 Form data:', { name, email, phone, password, confirmPassword });
+    
     if (password !== confirmPassword) {
       Alert.alert("Error", "Passwords do not match");
+      return;
+    }
+
+    if (!name || !email || !password) {
+      console.log('❌ Validation failed:', { name, email, password });
+      Alert.alert("Error", "Please fill all required fields");
       return;
     }
 
     setLoading(true);
 
     try {
-      const res = await fetch(
-        `${process.env.EXPO_PUBLIC_API_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            password,
-          }),
-        }
-      );
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.message || "Registration failed");
-      }
-
+      console.log('🚀 Calling register with:', { name, email, phone, password });
+      await register(name, email, phone, password);
       Alert.alert("Success", "Account created successfully!");
-      router.push("/home");
+      // Don't manually navigate - index.tsx will handle routing based on auth state
     } catch (err: any) {
-      Alert.alert("Error", err.message);
+      console.error('❌ Register error:', err);
+      const errorMessage = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Registration failed";
+      Alert.alert("Registration Failed", errorMessage);
     } finally {
       setLoading(false);
     }
@@ -58,7 +62,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={name}
-            onChangeText={setName}
+            onChangeText={(text) => {
+              console.log('✍️ Name changed:', text);
+              setName(text);
+            }}
             placeholder="Your name"
             autoCapitalize="words"
           />
@@ -69,10 +76,27 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={email}
-            onChangeText={setEmail}
+            onChangeText={(text) => {
+              console.log('✍️ Email changed:', text);
+              setEmail(text);
+            }}
             placeholder="you@email.com"
             keyboardType="email-address"
             autoCapitalize="none"
+          />
+        </View>
+
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Phone (Optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={phone}
+            onChangeText={(text) => {
+              console.log('✍️ Phone changed:', text);
+              setPhone(text);
+            }}
+            placeholder="052-1234567"
+            keyboardType="phone-pad"
           />
         </View>
 
@@ -81,7 +105,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={password}
-            onChangeText={setPassword}
+            onChangeText={(text) => {
+              console.log('✍️ Password changed:', text);
+              setPassword(text);
+            }}
             placeholder="••••••••"
             secureTextEntry
           />
@@ -92,7 +119,10 @@ export default function RegisterPage() {
           <TextInput
             style={styles.input}
             value={confirmPassword}
-            onChangeText={setConfirmPassword}
+            onChangeText={(text) => {
+              console.log('✍️ Confirm Password changed:', text);
+              setConfirmPassword(text);
+            }}
             placeholder="••••••••"
             secureTextEntry
           />
@@ -100,7 +130,10 @@ export default function RegisterPage() {
 
         <TouchableOpacity
           style={[styles.button, loading && styles.buttonDisabled]}
-          onPress={handleSubmit}
+          onPress={() => {
+            console.log('🔘 Register button pressed!');
+            handleSubmit();
+          }}
           disabled={loading}
         >
           <Text style={styles.buttonText}>
@@ -108,7 +141,7 @@ export default function RegisterPage() {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => router.push("/login")}>
+        <TouchableOpacity onPress={() => router.push("/auth/login")}>
           <Text style={styles.linkText}>
             Already have an account? <Text style={styles.linkBold}>Login</Text>
           </Text>

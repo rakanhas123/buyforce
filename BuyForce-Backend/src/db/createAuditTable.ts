@@ -1,5 +1,4 @@
-import pool from "./db";
-
+import { pool } from './db';
 async function createAuditLogsTable() {
   try {
     await pool.query(`

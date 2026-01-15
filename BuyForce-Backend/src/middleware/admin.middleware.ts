@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import jwt from "jsonwebtoken";
+import * as jwt from "jsonwebtoken";
 
 export type AdminRequest = {
   admin?: { email: string };

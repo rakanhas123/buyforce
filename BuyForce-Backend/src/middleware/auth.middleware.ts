@@ -1,6 +1,5 @@
 import type { Request, Response, NextFunction, RequestHandler } from "express";
-import jwt from "jsonwebtoken";
-
+import * as jwt from "jsonwebtoken";
 export type AuthUser = { id: string; email?: string };
 export type AuthRequest = Request & { user?: AuthUser };
 

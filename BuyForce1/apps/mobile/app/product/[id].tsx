@@ -5,184 +5,165 @@ import {
   Image,
   Pressable,
   SafeAreaView,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import {
   useLocalSearchParams,
   useRouter,
 } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
-
-/* =========================
-   🔹 טיפוס מוצר
-   ========================= */
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  imageUrl: string;
-  currentMembers: number;
-  goalMembers: number;
-};
-
-/* =========================
-   🔹 דאטה
-   ========================= */
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: "AirPods Pro",
-    price: 899,
-    imageUrl:
-      "https://images.unsplash.com/photo-1588156979435-1d26a06f5b26?auto=format&fit=crop&w=800&q=80",
-    currentMembers: 62,
-    goalMembers: 100,
-  },
-  {
-    id: 2,
-    name: "Running Shoes",
-    price: 349,
-    imageUrl:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
-    currentMembers: 91,
-    goalMembers: 100,
-  },
-  {
-    id: 3,
-    name: "Samsung Galaxy Watch",
-    price: 699,
-    imageUrl:
-      "https://images.unsplash.com/photo-1579586337278-3befd40fd17a?auto=format&fit=crop&w=800&q=80",
-    currentMembers: 12,
-    goalMembers: 50,
-  },
-  {
-    id: 4,
-    name: "MacBook Pro M3",
-    price: 8001,
-    imageUrl:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
-    currentMembers: 18,
-    goalMembers: 100,
-  },
-  {
-    id: 5,
-    name: "Gaming Pro Laptop",
-    price: 5499,
-    imageUrl:
-      "https://images.unsplash.com/photo-1603481588273-2f908a9a7a1b?auto=format&fit=crop&w=800&q=80",
-    currentMembers: 12,
-    goalMembers: 50,
-  },
-  {
-    id: 6,
-    name: "MacBook Pro M3",
-    price: 8001,
-    imageUrl:
-      "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?auto=format&fit=crop&w=800&q=80",
-    currentMembers: 10,
-    goalMembers: 100,
-  },
-];
+import { useState, useEffect } from "react";
+import { productsApi, Product } from "../lib/api";
 
 export default function ProductScreen() {
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id: string }>();
 
-  // אם ה-ID מתחיל ב-"p", הסר אותו והמר למספר
-  const numericId = id?.startsWith("p") 
-    ? Number(id.replace("p", ""))
-    : Number(id);
-    
-  const product = PRODUCTS.find(
-    (p) => p.id === numericId
-  );
+  const [product, setProduct] = useState<Product | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  if (!product || Number.isNaN(numericId)) {
+  useEffect(() => {
+    loadProduct();
+  }, [id]);
+
+  const loadProduct = async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const productId = Number(id);
+      
+      if (isNaN(productId)) {
+        setError("Invalid product ID");
+        return;
+      }
+
+      const data = await productsApi.getById(productId);
+      setProduct(data);
+    } catch (err: any) {
+      setError(err?.response?.data?.message || "Error loading product");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text style={styles.error}>Product not found</Text>
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>Loading product...</Text>
       </SafeAreaView>
     );
   }
 
-  const progress = Math.round(
-    (product.currentMembers / product.goalMembers) * 100
-  );
+  if (error || !product) {
+    return (
+      <SafeAreaView style={[styles.container, styles.centered]}>
+        <Text style={styles.error}>{error || "Product not found"}</Text>
+        <Pressable
+          style={styles.backButton}
+          onPress={() => router.back()}
+        >
+          <Text style={styles.backButtonText}>Back</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
 
-  const handleBack = () => {
-    if (router.canGoBack()) {
-      router.back();
-    } else {
-      router.replace("/(tabs)/home");
-    }
-  };
+  const mainImage = product.images?.find((img) => img.is_main)?.image_url || 
+                     product.images?.[0]?.image_url ||
+                     "https://via.placeholder.com/400";
 
   return (
     <SafeAreaView style={styles.container}>
-
-      {/* ⬅️ חץ חזרה */}
+      {/* Back Button */}
       <Pressable
         style={styles.backButton}
-        onPress={handleBack}
+        onPress={() => router.back()}
       >
         <Ionicons
           name="arrow-back"
-          size={26}
+          size={24}
           color="white"
         />
       </Pressable>
 
-      {/* 🖼️ תמונת מוצר */}
-      <Image
-        source={{ uri: product.imageUrl }}
-        style={styles.image}
-        resizeMode="cover"
-      />
-
-      {/* 🏷️ שם */}
-      <Text style={styles.title}>
-        {product.name}
-      </Text>
-
-      {/* 💰 מחיר */}
-      <Text style={styles.price}>
-        ₪{product.price}
-      </Text>
-
-      {/* 📊 Progress */}
-      <View style={styles.progressBar}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${progress}%` },
-          ]}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        {/* Product Image */}
+        <Image
+          source={{ uri: mainImage }}
+          style={styles.image}
         />
-      </View>
 
-      <Text style={styles.meta}>
-        {product.currentMembers}/{product.goalMembers} מצטרפים ({progress}%)
-      </Text>
-
-      {progress >= 80 && (
-        <Text style={styles.badge}>
-          🔥 Almost there
+        {/* Product Info */}
+        <Text style={styles.title}>{product.name}</Text>
+        <Text style={styles.price}>
+          ₪{parseFloat(product.price?.toString() || '0').toLocaleString('he-IL', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
         </Text>
-      )}
 
-      {/* ✅ Join Group */}
+        {product.description && (
+          <Text style={styles.description}>{product.description}</Text>
+        )}
+
+        {/* Category & Stock */}
+        <View style={styles.infoRow}>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Category</Text>
+            <Text style={styles.infoValue}>{product.category?.name || "No category"}</Text>
+          </View>
+          <View style={styles.infoItem}>
+            <Text style={styles.infoLabel}>Stock</Text>
+            <Text style={[
+              styles.infoValue,
+              product.stock_quantity > 0 ? styles.inStock : styles.outOfStock
+            ]}>
+              {product.stock_quantity > 0 ? `${product.stock_quantity} in stock` : "Out of stock"}
+            </Text>
+          </View>
+        </View>
+
+        {/* Specs */}
+        {product.specs && product.specs.length > 0 && (
+          <View style={styles.specsSection}>
+            <Text style={styles.sectionTitle}>Specifications</Text>
+            {product.specs.map((spec, index) => (
+              <View key={index} style={styles.specItem}>
+                <Text style={styles.specKey}>{spec.spec_key}</Text>
+                <Text style={styles.specValue}>{spec.spec_value}</Text>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* Additional Images */}
+        {product.images && product.images.length > 1 && (
+          <View style={styles.imagesSection}>
+            <Text style={styles.sectionTitle}>More Images</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {product.images.map((img, index) => (
+                <Image
+                  key={index}
+                  source={{ uri: img.image_url }}
+                  style={styles.thumbnailImage}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+      </ScrollView>
+
+      {/* Join Button */}
       <Pressable
-        style={styles.joinButton}
-        onPress={() =>
-          router.push({
-            pathname: "/(tabs)/groups",
-            params: {
-              productId: product.id.toString(),
-            },
-          })
-        }
+        style={[
+          styles.joinButton,
+          product.stock_quantity === 0 && styles.joinButtonDisabled
+        ]}
+        disabled={product.stock_quantity === 0}
+        onPress={() => router.push("/tabs/groups")}
       >
         <Text style={styles.joinText}>
-          Join Group
+          {product.stock_quantity > 0 ? "Join Group" : "Out of stock"}
         </Text>
       </Pressable>
 
@@ -196,90 +177,146 @@ export default function ProductScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
     backgroundColor: "#0b0b0f",
   },
-
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    color: "#9ca3af",
+    marginTop: 12,
+    fontSize: 16,
+  },
+  error: {
+    color: "#f87171",
+    fontSize: 18,
+    fontWeight: "600",
+    marginBottom: 20,
+    textAlign: "center",
+  },
   backButton: {
     position: "absolute",
-    top: 8,
+    top: 50,
     left: 16,
     zIndex: 20,
-    backgroundColor: "rgba(0,0,0,0.55)",
+    backgroundColor: "rgba(0,0,0,0.6)",
     borderRadius: 20,
-    padding: 6,
+    padding: 8,
   },
-
+  backButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
+  },
   image: {
     width: "100%",
-    height: 260,
-    borderRadius: 20,
+    height: 300,
+    borderRadius: 0,
     marginBottom: 20,
   },
-
   title: {
     fontSize: 26,
     fontWeight: "bold",
     color: "white",
-    marginBottom: 6,
+    marginBottom: 8,
+    paddingHorizontal: 16,
   },
-
   price: {
     fontSize: 22,
     fontWeight: "600",
-    color: "#cfcfcf",
-    marginBottom: 18,
+    color: "#10b981",
+    marginBottom: 12,
+    paddingHorizontal: 16,
   },
-
-  progressBar: {
-    height: 10,
-    backgroundColor: "#1f1f2e",
-    borderRadius: 20,
-    overflow: "hidden",
-    marginBottom: 6,
+  description: {
+    fontSize: 15,
+    color: "#d1d5db",
+    lineHeight: 22,
+    marginBottom: 16,
+    paddingHorizontal: 16,
   },
-
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#22c55e",
+  infoRow: {
+    flexDirection: "row",
+    paddingHorizontal: 16,
+    marginBottom: 20,
+    gap: 16,
   },
-
-  meta: {
-    color: "#9a9a9a",
-    fontSize: 13,
-    marginBottom: 10,
+  infoItem: {
+    flex: 1,
+    backgroundColor: "#1f2937",
+    padding: 12,
+    borderRadius: 10,
   },
-
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#2b2b15",
-    color: "#ffd700",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    fontWeight: "bold",
-    marginBottom: 24,
-    fontSize: 13,
+  infoLabel: {
+    fontSize: 12,
+    color: "#9ca3af",
+    marginBottom: 4,
   },
-
+  infoValue: {
+    fontSize: 15,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  inStock: {
+    color: "#10b981",
+  },
+  outOfStock: {
+    color: "#f87171",
+  },
+  specsSection: {
+    paddingHorizontal: 16,
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#fff",
+    marginBottom: 12,
+  },
+  specItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: "#1f2937",
+  },
+  specKey: {
+    fontSize: 14,
+    color: "#9ca3af",
+  },
+  specValue: {
+    fontSize: 14,
+    color: "#fff",
+    fontWeight: "600",
+  },
+  imagesSection: {
+    paddingHorizontal: 16,
+    marginBottom: 80,
+  },
+  thumbnailImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 10,
+    marginRight: 10,
+  },
   joinButton: {
-    marginTop: "auto",
-    backgroundColor: "#22c55e",
+    position: "absolute",
+    bottom: 20,
+    left: 16,
+    right: 16,
+    backgroundColor: "#3b82f6",
     paddingVertical: 16,
-    borderRadius: 28,
+    borderRadius: 12,
     alignItems: "center",
   },
-
+  joinButtonDisabled: {
+    backgroundColor: "#374151",
+  },
   joinText: {
     color: "white",
-    fontSize: 17,
-    fontWeight: "700",
-  },
-
-  error: {
-    color: "white",
     fontSize: 18,
-    textAlign: "center",
-    marginTop: 40,
+    fontWeight: "bold",
   },
 });

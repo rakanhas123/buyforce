@@ -1,12 +1,17 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-export async function connectMongo(): Promise<void> {
-  const uri = process.env.MONGO_URI || process.env.MONGODB_URI || 'mongodb://localhost:27017/buyforce';
+export const connectMongo = async (): Promise<void> => {
   try {
+    const uri = process.env.MONGO_URI;
+
+    if (!uri) {
+      throw new Error("MONGO_URI is not defined in .env");
+    }
+
     await mongoose.connect(uri);
-    console.log('✅ Connected to MongoDB');
+    console.log("✅ MongoDB connected");
   } catch (err) {
-    console.error('Failed to connect to MongoDB:', err);
-    throw err;
+    console.error("❌ Failed to connect to MongoDB:", err);
+    process.exit(1);
   }
-}
+};

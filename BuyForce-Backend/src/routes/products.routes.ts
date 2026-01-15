@@ -4,7 +4,7 @@ import { pool } from "../db/db";
 const router = Router();
 
 /**
- * GET /v1/products  -> מחזיר Product[] (מערך!)
+ * GET /v1/products
  */
 router.get("/", async (_req, res) => {
   try {
@@ -16,12 +16,11 @@ router.get("/", async (_req, res) => {
              c.slug AS "categorySlug"
       FROM products p
       LEFT JOIN categories c ON c.id = p."categoryId"
-      WHERE p."isActive" = true
-      ORDER BY p."createdAt" DESC
+      WHERE COALESCE(p."isActive", true)=true
+      ORDER BY p."createdAt" DESC NULLS LAST
       `
     );
 
-    // מחזירים בדיוק מה שה-frontend מצפה
     const items = r.rows.map((x: any) => ({
       id: x.id,
       name: x.name,
@@ -41,11 +40,12 @@ router.get("/", async (_req, res) => {
 });
 
 /**
- * GET /v1/products/:id -> Product
+ * GET /v1/products/:id
  */
 router.get("/:id", async (req, res) => {
   try {
-    const id = req.params.id;
+    const id = String(req.params.id);
+
     const r = await pool.query(
       `
       SELECT p.*,
@@ -79,19 +79,18 @@ router.get("/:id", async (req, res) => {
 });
 
 /**
- * GET /v1/products/:id/group -> Group
- * מחזיר את הקבוצה האמיתית מה-DB (UUID), כדי ש-join יעבוד
+ * GET /v1/products/:id/group
  */
 router.get("/:id/group", async (req, res) => {
   try {
-    const productId = req.params.id;
+    const productId = String(req.params.id);
 
     const r = await pool.query(
       `
       SELECT *
       FROM groups
       WHERE "productId" = $1
-      ORDER BY "createdAt" DESC
+      ORDER BY "createdAt" DESC NULLS LAST
       LIMIT 1
       `,
       [productId]
