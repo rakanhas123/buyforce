@@ -36,6 +36,12 @@ app.use(
 
 app.use(express.json());
 
+// Request logging
+app.use((req, res, next) => {
+  console.log(` ${req.method} ${req.url}`);
+  next();
+});
+
 /* ===============================
    API Routes
 ================================ */
@@ -75,12 +81,33 @@ app.get("/v1/health", async (_req, res) => {
 });
 
 /* ===============================
+   Error Handlers
+================================ */
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error("=== UNHANDLED ERROR ===");
+  console.error(err);
+  res.status(500).json({ error: "Internal server error", message: err.message });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error("=== UNCAUGHT EXCEPTION ===");
+  console.error(err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error("=== UNHANDLED REJECTION ===");
+  console.error('Promise:', promise);
+  console.error('Reason:', reason);
+});
+
+/* ===============================
    Server Start
 ================================ */
 const port = Number(process.env.PORT || 3000);
 const host = process.env.HOST || "0.0.0.0";
 
 app.listen(port, host, () => {
-  console.log(`✅ Server running on http://${host}:${port}`);
-  console.log(`📱 For mobile device, use your computer's IP address`);
+  console.log(` Server running on http://${host}:${port}`);
+  console.log(` For mobile device, use your computer's IP address`);
 });

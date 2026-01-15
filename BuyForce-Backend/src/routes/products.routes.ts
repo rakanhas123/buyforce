@@ -10,6 +10,7 @@ const router = Router();
  */
 router.get("/", async (req, res) => {
   try {
+    console.log("[Products API] Received GET request");
     const { categoryId } = req.query;
     
     // Build query with optional category filter
@@ -47,7 +48,9 @@ router.get("/", async (req, res) => {
     
     query += ` ORDER BY p.id DESC LIMIT 50`;
     
+    console.log("[Products API] Querying database...");
     const result = await pool.query(query, params);
+    console.log(`[Products API] Got ${result.rows.length} rows`);
 
     // Format the response
     const items = result.rows.map(row => ({
@@ -64,11 +67,13 @@ router.get("/", async (req, res) => {
       delete item.category_name;
     });
 
+    console.log("[Products API] Sending response");
     return res.json({
       source: "db",
       items,
     });
   } catch (err: any) {
+    console.log("[Products API] Error occurred:", err?.message);
     const msg = err?.message ?? "";
 
     if (

@@ -93,9 +93,9 @@ export default function HomeScreen() {
 
   const loadProducts = async () => {
     try {
-      console.log('📦 Loading products from API...');
+      console.log('Loading products from API...');
       const data = await productsApi.getAll();
-      console.log('✅ Products loaded:', data.length, 'products');
+      console.log('Products loaded:', data.length, 'products');
       setProducts(data);
       
       // Initialize groups for each product
@@ -127,7 +127,7 @@ export default function HomeScreen() {
       });
       setProductGroups(groupsMap);
     } catch (error) {
-      console.error("❌ Error loading products:", error);
+      console.error("Error loading products:", error);
     } finally {
       setLoading(false);
     }
@@ -148,7 +148,7 @@ export default function HomeScreen() {
     setPaymentLoading(true);
     try {
       // Step 1: Request Payment Intent from backend
-      const API_BASE = Platform.OS === 'web' ? 'http://localhost:3000' : 'http://192.168.160.126:3000';
+      const API_BASE = Platform.OS === 'web' ? 'http://localhost:3000' : 'http://192.168.160.106:3000';
       const paymentIntentResponse = await fetch(`${API_BASE}/api/payments/group-join`, {
         method: "POST",
         headers: {
@@ -165,7 +165,7 @@ export default function HomeScreen() {
       const intentData = await paymentIntentResponse.json();
 
       if (!intentData.success) {
-        Alert.alert("❌ Payment Error", intentData.message || "Failed to initialize payment");
+        Alert.alert("Payment Error", intentData.message || "Failed to initialize payment");
         return;
       }
 
@@ -199,15 +199,15 @@ export default function HomeScreen() {
 
         setShowPaymentModal(false);
         Alert.alert(
-          "✅ Payment Successful!",
+          "Payment Successful!",
           `You've successfully joined the group!\n\nAmount paid: $${selectedGroup.pricePerUnit.toFixed(2)}\nTransaction ID: ${confirmData.transactionId}\n\nPayment Method: ${paymentMethod === 'paypal' ? 'PayPal' : 'Card'}`,
           [{ text: "OK", onPress: () => setSelectedGroup(null) }]
         );
       } else {
-        Alert.alert("❌ Payment Failed", confirmData.message || "Please try again");
+        Alert.alert("Payment Failed", confirmData.message || "Please try again");
       }
     } catch (error) {
-      Alert.alert("❌ Error", "Failed to process payment. Please check your connection.");
+      Alert.alert("Error", "Failed to process payment. Please check your connection.");
       console.error("Payment error:", error);
     } finally {
       setPaymentLoading(false);
@@ -552,7 +552,7 @@ export default function HomeScreen() {
             }}
           >
             <Text style={styles.addButtonText}>
-              {inStock ? "Join Group 👥" : "Out of Stock ❌"}
+              {inStock ? "Join Group " : "Out of Stock "}
             </Text>
           </Pressable>
         </View>
@@ -582,7 +582,7 @@ export default function HomeScreen() {
         <View style={styles.headerSection}>
           <View style={styles.headerTop}>
             <View>
-              <Text style={styles.logo}>🛍️ BuyForce</Text>
+              <Text style={styles.logo}> BuyForce</Text>
               <Text style={styles.tagline}>Smart Group Shopping</Text>
             </View>
             <Pressable style={styles.cartIcon}>

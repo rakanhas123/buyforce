@@ -117,7 +117,7 @@ router.post("/:id/join", authMiddleware, async (req, res) => {
 
       const amount = groupResult.rows[0].price * 100;
 
-      // 💳 Stripe Authorization (manual capture)
+      //  Stripe Authorization (manual capture)
       const paymentIntent = await stripe.paymentIntents.create({
         amount,
         currency: "ils",
@@ -194,7 +194,7 @@ router.post("/:id/pay-product", authMiddleware, async (req, res) => {
           .json({ error: "Product already paid" });
       }
 
-      // 💳 Capture הכסף
+      //  Capture הכסף
       await stripe.paymentIntents.capture(
         member.payment_intent_id
       );

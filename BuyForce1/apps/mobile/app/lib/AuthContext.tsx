@@ -41,51 +41,51 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
-    console.log('🔐 Login started:', { email });
+    console.log(' Login started:', { email });
     try {
-      console.log('📡 Calling API...');
+      console.log(' Calling API...');
       const response = await authApi.login({ email, password });
-      console.log('✅ API response received:', response);
+      console.log(' API response received:', response);
       
       setUser(response.user);
       setToken(response.token);
       setAuthToken(response.token);
-      console.log('✅ State updated, user:', response.user.email, 'token exists:', !!response.token);
+      console.log(' State updated, user:', response.user.email, 'token exists:', !!response.token);
       
       // Save to AsyncStorage
       await AsyncStorage.setItem('authToken', response.token);
       await AsyncStorage.setItem('user', JSON.stringify(response.user));
-      console.log('✅ Saved to AsyncStorage');
-      console.log('🎯 isAuthenticated should now be:', !!response.user && !!response.token);
+      console.log('Saved to AsyncStorage');
+      console.log('isAuthenticated should now be:', !!response.user && !!response.token);
     } catch (error) {
-      console.error('❌ Login failed:', error);
+      console.error(' Login failed:', error);
       throw error;
     }
   };
 
   const register = async (fullName: string, email: string, phone: string, password: string) => {
-    console.log('🔐 Register started:', { fullName, email, phone });
+    console.log('Register started:', { fullName, email, phone });
     try {
-      console.log('📡 Calling authApi.register...');
+      console.log(' Calling authApi.register...');
       const response = await authApi.register({
         fullName,
         email,
         phone,
         password,
       });
-      console.log('✅ Register response received:', response);
+      console.log('Register response received:', response);
       
       setUser(response.user);
       setToken(response.token);
       setAuthToken(response.token);
-      console.log('✅ State updated, user:', response.user.email, 'token exists:', !!response.token);
+      console.log('State updated, user:', response.user.email, 'token exists:', !!response.token);
       
       // Save to AsyncStorage
       await AsyncStorage.setItem('authToken', response.token);
       await AsyncStorage.setItem('user', JSON.stringify(response.user));
-      console.log('✅ Saved to AsyncStorage');
+      console.log('Saved to AsyncStorage');
     } catch (error) {
-      console.error('❌ Registration failed:', error);
+      console.error('Registration failed:', error);
       throw error;
     }
   };
@@ -110,7 +110,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   
   // Debug: Log whenever auth state changes
   React.useEffect(() => {
-    console.log('🔄 Auth state changed:', { 
+    console.log('Auth state changed:', { 
       hasUser: !!user, 
       hasToken: !!token, 
       isAuthenticated,

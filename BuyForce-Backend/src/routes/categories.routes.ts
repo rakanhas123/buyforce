@@ -10,7 +10,7 @@ const router = Router();
 router.get("/", async (_req, res) => {
   try {
     const result = await pool.query(
-      `SELECT id, name, parent_id FROM categories ORDER BY name ASC`
+      `SELECT id, name, parent_id, image_url FROM categories ORDER BY name ASC`
     );
     
     return res.json(result.rows);
@@ -29,7 +29,7 @@ router.get("/:id", async (req, res) => {
 
   try {
     const result = await pool.query(
-      `SELECT id, name, parent_id FROM categories WHERE id = $1`,
+      `SELECT id, name, parent_id, image_url FROM categories WHERE id = $1`,
       [id]
     );
 

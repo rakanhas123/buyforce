@@ -172,7 +172,7 @@ export default function ProductScreen() {
 }
 
 /* =========================
-   🎨 Styles
+    Styles
    ========================= */
 const styles = StyleSheet.create({
   container: {

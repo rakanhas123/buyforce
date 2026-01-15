@@ -32,14 +32,14 @@ export default function GroupScreen() {
       const groupId = Number(id);
 
       if (isNaN(groupId)) {
-        setError("מזהה קבוצה לא תקין");
+        setError("Invalid group ID");
         return;
       }
 
       const data = await groupsApi.getById(groupId);
       setGroup(data);
     } catch (err: any) {
-      setError(err?.response?.data?.message || "שגיאה בטעינת הקבוצה");
+      setError(err?.response?.data?.message || "Error loading group");
     } finally {
       setLoading(false);
     }
@@ -49,7 +49,7 @@ export default function GroupScreen() {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
         <ActivityIndicator size="large" color="#fff" />
-        <Text style={styles.loadingText}>טוען קבוצה...</Text>
+        <Text style={styles.loadingText}>Loading group...</Text>
       </SafeAreaView>
     );
   }
@@ -57,9 +57,9 @@ export default function GroupScreen() {
   if (error || !group) {
     return (
       <SafeAreaView style={[styles.container, styles.centered]}>
-        <Text style={styles.error}>{error || "קבוצה לא נמצאה"}</Text>
+        <Text style={styles.error}>{error || "Group not found"}</Text>
         <Pressable style={styles.backButton} onPress={() => router.back()}>
-          <Text style={styles.backButtonText}>חזור</Text>
+          <Text style={styles.backButtonText}>Back</Text>
         </Pressable>
       </SafeAreaView>
     );
@@ -80,7 +80,7 @@ export default function GroupScreen() {
           <Pressable onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </Pressable>
-          <Text style={styles.headerTitle}>פרטי קבוצה</Text>
+          <Text style={styles.headerTitle}>Group Details</Text>
           <View style={{ width: 24 }} />
         </View>
 
@@ -96,12 +96,12 @@ export default function GroupScreen() {
             >
               <Text style={styles.statusText}>
                 {group.status === "active"
-                  ? "פעילה"
+                  ? "Active"
                   : group.status === "pending"
-                  ? "ממתינה"
+                  ? "Pending"
                   : group.status === "completed"
-                  ? "הושלמה"
-                  : "בוטלה"}
+                  ? "Completed"
+                  : "Cancelled"}
               </Text>
             </View>
           </View>
@@ -113,9 +113,9 @@ export default function GroupScreen() {
           {/* Progress */}
           <View style={styles.progressSection}>
             <View style={styles.progressInfo}>
-              <Text style={styles.progressLabel}>התקדמות</Text>
+              <Text style={styles.progressLabel}>Progress</Text>
               <Text style={styles.progressText}>
-                {group.current_members}/{group.goal_members} חברים
+                {group.current_members}/{group.goal_members} members
               </Text>
             </View>
             <View style={styles.progressBar}>
@@ -136,16 +136,16 @@ export default function GroupScreen() {
           {/* Dates */}
           <View style={styles.datesSection}>
             <View style={styles.dateItem}>
-              <Text style={styles.dateLabel}>תאריך התחלה</Text>
+              <Text style={styles.dateLabel}>Start Date</Text>
               <Text style={styles.dateValue}>
-                {new Date(group.start_date).toLocaleDateString("he-IL")}
+                {new Date(group.start_date).toLocaleDateString("en-US")}
               </Text>
             </View>
             {group.end_date && (
               <View style={styles.dateItem}>
-                <Text style={styles.dateLabel}>תאריך סיום</Text>
+                <Text style={styles.dateLabel}>End Date</Text>
                 <Text style={styles.dateValue}>
-                  {new Date(group.end_date).toLocaleDateString("he-IL")}
+                  {new Date(group.end_date).toLocaleDateString("en-US")}
                 </Text>
               </View>
             )}
@@ -154,7 +154,7 @@ export default function GroupScreen() {
           {/* Price */}
           {group.price && (
             <View style={styles.priceSection}>
-              <Text style={styles.priceLabel}>מחיר לחבר</Text>
+              <Text style={styles.priceLabel}>Price per Member</Text>
               <Text style={styles.priceValue}>₪{group.price}</Text>
             </View>
           )}
@@ -163,7 +163,7 @@ export default function GroupScreen() {
         {/* Join Button */}
         {group.status === "active" && group.current_members < group.goal_members && (
           <Pressable style={styles.joinButton}>
-            <Text style={styles.joinButtonText}>הצטרף לקבוצה</Text>
+            <Text style={styles.joinButtonText}>Join Group</Text>
           </Pressable>
         )}
       </ScrollView>
