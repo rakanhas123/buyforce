@@ -1,29 +1,34 @@
 import { useEffect, useState } from "react";
-import http from "../api/http";
+import AdminTable from "../ui/AdminTable";
+import { useAdminAuth } from "../auth/AdminAuthContext";
+import { adminApi } from "../lib/adminApiClient";
 
 type WishRow = {
   id: string;
-  name: string;
-  url?: string;
-  created_at: string;
-  user_id: string;
-  email: string;
-  fullName: string;
+  user_id?: string;
+  userId?: string;
+  email?: string | null;
+  product_id?: string;
+  productId?: string;
+  productName?: string | null;
+  createdAt?: string | null;
 };
 
 export default function AdminWishlistPage() {
+  const { token } = useAdminAuth();
   const [items, setItems] = useState<WishRow[]>([]);
-  const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   async function load() {
+    if (!token) return;
     setLoading(true);
     setErr(null);
     try {
-      const { data } = await http.get("/v1/admin/wishlist");
-      setItems(data.items || []);
+      const data = await adminApi<{ items: WishRow[] }>("/admin/wishlist", token);
+      setItems(data.items ?? []);
     } catch (e: any) {
-      setErr(e?.response?.data?.error || e?.message || "Failed to load wishlists");
+      setErr(e?.message ?? "Failed to load wishlist");
     } finally {
       setLoading(false);
     }
@@ -31,54 +36,47 @@ export default function AdminWishlistPage() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  async function onDelete() {
+    if (!token) return;
+    if (!confirm("Delete wishlist item?")) return;
+    await adminApi(`/admin/wishlist/`, token, { method: "DELETE" });
+    await load();
+  }
+
+  if (!token) return <div className="card">Missing admin token. Login again.</div>;
+  if (loading) return <div className="card">Loading…</div>;
+  if (err) return <div className="card" style={{ color: "crimson" }}>{err}</div>;
 
   return (
-    <div className="grid">
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Wishlists</h2>
-        <div className="muted">All wishlist items for all users.</div>
-
-        <div className="hr" />
+    <div className="card">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <h2 style={{ margin: 0 }}>Wishlist</h2>
         <button className="btn secondary" onClick={load}>Refresh</button>
       </div>
 
-      {err && <div style={{ color: "crimson" }}>{err}</div>}
-      {loading ? (
-        <div>Loading…</div>
-      ) : (
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Item</th>
-              <th>URL</th>
-              <th>User</th>
-              <th>Created</th>
-            </tr>
-          </thead>
-          <tbody>
-            {items.map((w) => (
-              <tr key={w.id}>
-                <td>{w.name}</td>
-                <td>
-                  {w.url ? (
-                    <a href={w.url} target="_blank" rel="noreferrer" style={{ textDecoration: "underline" }}>
-                      link
-                    </a>
-                  ) : (
-                    <span className="muted">—</span>
-                  )}
-                </td>
-                <td>
-                  <div style={{ fontWeight: 800 }}>{w.fullName}</div>
-                  <div className="muted">{w.email}</div>
-                </td>
-                <td className="muted">{new Date(w.created_at).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      )}
+      <div className="hr" />
+
+      <AdminTable
+        columns={[
+          { key: "id", title: "ID" },
+          { key: "email", title: "User Email" },
+          { key: "productId", title: "ProductId", render: (r: WishRow) => r.productId ?? r.product_id ?? "" },
+          { key: "productName", title: "Product" },
+          {
+            key: "_actions",
+            title: "Actions",
+            render: (r: WishRow) => (
+              <button className="btn danger" type="button" onClick={() => onDelete()}>
+                Delete
+              </button>
+            ),
+          },
+        ]}
+        rows={items}
+      />
     </div>
   );
 }

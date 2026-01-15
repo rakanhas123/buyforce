@@ -16,6 +16,12 @@ export class Group {
   @Column()
   name!: string;
 
+
+
+  
+@Column({ type: "uuid", nullable: true })
+productId!: string | null;
+
   // כמה משתמשים חייבים להצטרף כדי שהקבוצה תיחשב מלאה (100%)
   @Column({ type: 'int' })
   minParticipants!: number;

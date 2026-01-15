@@ -9,10 +9,21 @@ import authRoutes from "./routes/auth.routes";
 import { dbHealthCheck } from "./db/db";
 import { webhookHandler } from "./routes/stripe-webhook"
 import authRouter from "./routes/auth.routes";
+import categoriesRoutes from "./routes/categories.routes";
+import homeRoutes from "./routes/home.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
 import adminGroupsRoutes from "./routes/admin.groups.routes";
 import adminUsersRoutes from "./routes/admin.users.routes";
 import adminWishlistRoutes from "./routes/admin.wishlist.routes";
+import searchRoutes from "./routes/search.routes";
+import notificationsRoutes from "./routes/notifications.routes";
+import adminAuthRoutes from "./routes/admin.auth.routes";
+import adminNotificationsRoutes from "./routes/admin.notifications.routes";
+import adminProductsRoutes from "./routes/admin.products.routes";
+import adminCategoriesRoutes from "./routes/admin.categories.routes";
+import adminDashboardRoutes from "./routes/admin.dashboard.routes";
+
+
 const app = express();
 
 app.use(
@@ -40,6 +51,15 @@ app.use("/v1/payments", paymentsRoutes);
 app.use("/v1/auth", authRoutes);
 app.use("/v1/auth", authRouter);
 app.use("/v1/wishlist", wishlistRoutes);
+app.use("/v1/categories", categoriesRoutes);
+app.use("/v1/home", homeRoutes);
+app.use("/v1/search", searchRoutes);
+app.use("/v1/admin/auth", adminAuthRoutes);
+app.use("/v1/admin/notifications", adminNotificationsRoutes);
+app.use("/v1/notifications", notificationsRoutes);
+app.use("/v1/admin/products", adminProductsRoutes);
+app.use("/v1/admin/categories", adminCategoriesRoutes);
+app.use("/v1/admin/dashboard", adminDashboardRoutes);
 /* =========================================
    Health
 ========================================= */

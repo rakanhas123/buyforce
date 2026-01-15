@@ -5,61 +5,95 @@ import { authMiddleware, type AuthRequest } from "../middleware/auth.middleware"
 const router = Router();
 
 /**
- * GET /v1/wishlist
+ * GET /v1/wishlist -> WishlistItem[]
  */
 router.get("/", authMiddleware, async (req, res) => {
   const userId = (req as AuthRequest).user!.id;
 
   try {
     const r = await pool.query(
-      `SELECT id, name, url, created_at
-       FROM wishlist
-       WHERE user_id=$1
-       ORDER BY created_at DESC`,
+      `
+      SELECT wi.id,
+             wi."productId",
+             wi."createdAt",
+             p.name AS "productName"
+      FROM wishlist_items wi
+      LEFT JOIN products p ON p.id = wi."productId"
+      WHERE wi.user_id = $1
+      ORDER BY wi."createdAt" DESC
+      `,
       [userId]
     );
-    return res.json({ items: r.rows });
+
+    return res.json(
+      r.rows.map((x: any) => ({
+        id: x.id,
+        productId: x.productId,
+        productName: x.productName ?? null,
+        createdAt: x.createdAt,
+      }))
+    );
   } catch (e: any) {
     return res.status(500).json({ error: e?.message ?? "Failed to load wishlist" });
   }
 });
 
 /**
- * POST /v1/wishlist
- * body: { name, url }
+ * GET /v1/wishlist/has/:productId -> {has:boolean}
  */
-router.post("/", authMiddleware, async (req, res) => {
+router.get("/has/:productId", authMiddleware, async (req, res) => {
   const userId = (req as AuthRequest).user!.id;
-  const { name, url } = req.body as { name?: string; url?: string };
-
-  if (!name || !name.trim()) return res.status(400).json({ error: "name is required" });
+  const productId = req.params.productId;
 
   try {
     const r = await pool.query(
-      `INSERT INTO wishlist (user_id, name, url)
-       VALUES ($1,$2,$3)
-       RETURNING id, name, url, created_at`,
-      [userId, name.trim(), url?.trim() || null]
+      `SELECT 1 FROM wishlist_items WHERE user_id=$1 AND "productId"=$2 LIMIT 1`,
+      [userId, productId]
     );
-    return res.json({ item: r.rows[0] });
+    return res.json({ has: r.rows.length > 0 });
   } catch (e: any) {
-    return res.status(500).json({ error: e?.message ?? "Failed to add item" });
+    return res.status(500).json({ error: e?.message ?? "Failed to check wishlist" });
   }
 });
 
 /**
- * DELETE /v1/wishlist/:id
+ * POST /v1/wishlist/:productId
  */
-router.delete("/:id", authMiddleware, async (req, res) => {
+router.post("/:productId", authMiddleware, async (req, res) => {
   const userId = (req as AuthRequest).user!.id;
-  const id = req.params.id;
+  const productId = req.params.productId;
 
   try {
-    const r = await pool.query(`DELETE FROM wishlist WHERE id=$1 AND user_id=$2`, [id, userId]);
-    if ((r.rowCount ?? 0) === 0) return res.status(404).json({ error: "Not found" });
+    await pool.query(
+      `
+      INSERT INTO wishlist_items (user_id, "productId")
+      VALUES ($1,$2)
+      ON CONFLICT (user_id, "productId") DO NOTHING
+      `,
+      [userId, productId]
+    );
+
     return res.json({ ok: true });
   } catch (e: any) {
-    return res.status(500).json({ error: e?.message ?? "Failed to delete" });
+    return res.status(400).json({ error: e?.message ?? "Add wishlist failed" });
+  }
+});
+
+/**
+ * DELETE /v1/wishlist/:productId
+ */
+router.delete("/:productId", authMiddleware, async (req, res) => {
+  const userId = (req as AuthRequest).user!.id;
+  const productId = req.params.productId;
+
+  try {
+    await pool.query(
+      `DELETE FROM wishlist_items WHERE user_id=$1 AND "productId"=$2`,
+      [userId, productId]
+    );
+    return res.json({ ok: true });
+  } catch (e: any) {
+    return res.status(400).json({ error: e?.message ?? "Delete wishlist failed" });
   }
 });
 

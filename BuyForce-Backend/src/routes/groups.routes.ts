@@ -61,17 +61,23 @@ router.get("/my", authMiddleware, async (req, res) => {
   const userId = (req as AuthRequest).user!.id;
 
   try {
-    const result = await pool.query(
+    const r = await pool.query(
       `
-      SELECT g.*
+      SELECT
+        g.*,
+        p.name AS "productName",
+        p."priceRegular" AS "priceRegular",
+        p."priceGroup" AS "priceGroup"
       FROM groups g
       INNER JOIN group_members gm ON gm.group_id = g.id
+      LEFT JOIN products p ON p.id = g."productId"
       WHERE gm.user_id = $1
       ORDER BY g."createdAt" DESC NULLS LAST
       `,
       [userId]
     );
-    return res.json({ items: result.rows });
+
+    return res.json({ items: r.rows });
   } catch (e: any) {
     return res.status(500).json({ error: e?.message ?? "Failed to load my groups" });
   }
@@ -137,18 +143,37 @@ router.post("/:id/join", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "User already joined this group" });
     }
 
-    await client.query(`INSERT INTO group_members (group_id, user_id) VALUES ($1,$2)`, [groupId, userId]);
+    // ✅ המשתמש מצטרף לקבוצה
+    await client.query(
+      `INSERT INTO group_members (group_id, user_id) VALUES ($1,$2)`,
+      [groupId, userId]
+    );
+
     await client.query("COMMIT");
 
+    // 🔁 עדכון progress / status
     await recomputeGroup(groupId);
+
+    // 🔔 HERE — יצירת Notification
+    await pool.query(
+      `
+      INSERT INTO notifications (user_id, type, title, body, link)
+      VALUES ($1, 'GROUP_JOIN', 'Joined group ✅', $2, $3)
+      `,
+      [userId, `You joined group ${groupId}`, `/groups/${groupId}`]
+    );
+
     return res.json({ ok: true });
   } catch (e: any) {
-    try { await client.query("ROLLBACK"); } catch {}
+    try {
+      await client.query("ROLLBACK");
+    } catch {}
     return res.status(400).json({ error: e?.message ?? "Join failed" });
   } finally {
     client.release();
   }
 });
+
 
 /**
  * DELETE /v1/groups/:id/leave
@@ -184,10 +209,21 @@ router.delete("/:id/leave", authMiddleware, async (req, res) => {
       return res.status(400).json({ error: "Not a member of this group" });
     }
 
-    await client.query("COMMIT");
+await client.query("COMMIT");
 
-    await recomputeGroup(groupId);
-    return res.json({ ok: true });
+await recomputeGroup(groupId);
+
+// ✅ create notification
+await pool.query(
+  `
+  INSERT INTO notifications (user_id, type, title, body, link)
+  VALUES ($1, 'GROUP_JOIN', 'Joined group ✅', $2, $3)
+  `,
+  [userId, `You joined group ${groupId}`, `/groups/${groupId}`]
+);
+
+
+return res.json({ ok: true });
   } catch (e: any) {
     try { await client.query("ROLLBACK"); } catch {}
     return res.status(500).json({ error: e?.message ?? "Leave failed" });
@@ -195,5 +231,4 @@ router.delete("/:id/leave", authMiddleware, async (req, res) => {
     client.release();
   }
 });
-
 export default router;

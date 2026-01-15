@@ -1,7 +1,10 @@
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: "2025-12-15",
-});
+const key = process.env.STRIPE_SECRET_KEY;
+if (!key) {
+  throw new Error("Missing STRIPE_SECRET_KEY in env");
+}
+
+const stripe = new Stripe(key);
 
 export default stripe;

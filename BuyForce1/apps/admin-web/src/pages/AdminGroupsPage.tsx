@@ -1,37 +1,34 @@
 import { useEffect, useState } from "react";
-import http from "../api/http";
+import AdminTable from "../ui/AdminTable";
+import { useAdminAuth } from "../auth/AdminAuthContext";
+import { adminApi } from "../lib/adminApiClient";
 
-type Group = {
+type GroupRow = {
   id: string;
-  name: string;
-  description?: string;
-  joinedCount: number;
-  minParticipants: number;
-  progress: number;
-  status: "OPEN" | "LOCKED" | "CHARGED" | "FAILED";
+  name?: string | null;
+  status?: string;
+  joinedCount?: number;
+  minParticipants?: number;
+  progress?: number;
+  productId?: string | null;
+  endsAt?: string | null;
 };
 
-const STATUSES: Group["status"][] = ["OPEN", "LOCKED", "CHARGED", "FAILED"];
-
 export default function AdminGroupsPage() {
-  const [items, setItems] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { token } = useAdminAuth();
+  const [items, setItems] = useState<GroupRow[]>([]);
   const [err, setErr] = useState<string | null>(null);
-
-  // create form
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [minParticipants, setMinParticipants] = useState<number>(3);
-  const [creating, setCreating] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   async function load() {
+    if (!token) return;
     setLoading(true);
     setErr(null);
     try {
-      const { data } = await http.get("/v1/admin/groups");
-      setItems(data.items || []);
+      const data = await adminApi<{ items: GroupRow[] }>("/admin/groups", token);
+      setItems(data.items ?? []);
     } catch (e: any) {
-      setErr(e?.response?.data?.error || e?.message || "Failed to load groups");
+      setErr(e?.message ?? "Failed to load groups");
     } finally {
       setLoading(false);
     }
@@ -39,171 +36,62 @@ export default function AdminGroupsPage() {
 
   useEffect(() => {
     load();
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
 
-  async function onCreate() {
-    if (!name.trim()) return alert("Name required");
-    try {
-      setCreating(true);
-      await http.post("/v1/admin/groups", {
-        name: name.trim(),
-        description: description.trim() || undefined,
-        minParticipants: Number(minParticipants),
-      });
-      setName("");
-      setDescription("");
-      setMinParticipants(3);
-      await load();
-    } catch (e: any) {
-      alert(e?.response?.data?.error || e?.message || "Create failed");
-    } finally {
-      setCreating(false);
-    }
+  async function action(path: string) {
+    if (!token) return;
+    await adminApi(path, token, { method: "POST" });
+    await load();
   }
 
-  async function onForceStatus(groupId: string, status: Group["status"]) {
-    try {
-      await http.post(`/v1/admin/groups/${groupId}/status`, { status });
-      await load();
-    } catch (e: any) {
-      alert(e?.response?.data?.error || e?.message || "Status update failed");
-    }
-  }
-
-  async function onEdit(groupId: string, patch: Partial<Group>) {
-    try {
-      await http.patch(`/v1/admin/groups/${groupId}`, patch);
-      await load();
-    } catch (e: any) {
-      alert(e?.response?.data?.error || e?.message || "Edit failed");
-    }
-  }
-
-  async function onDelete(groupId: string) {
+  async function onDelete(id: string) {
+    if (!token) return;
     if (!confirm("Delete this group?")) return;
-    try {
-      await http.delete(`/v1/admin/groups/${groupId}`);
-      await load();
-    } catch (e: any) {
-      alert(e?.response?.data?.error || e?.message || "Delete failed");
-    }
+    await adminApi(`/admin/groups/${id}`, token, { method: "DELETE" });
+    await load();
   }
+
+  if (!token) return <div className="card">Missing admin token. Login again.</div>;
+  if (loading) return <div className="card">Loading…</div>;
+  if (err) return <div className="card" style={{ color: "crimson" }}>{err}</div>;
 
   return (
-    <div className="grid">
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Groups</h2>
-        <div className="muted">Create groups, edit them, and force status.</div>
-
-        <div className="hr" />
-
-        <div className="grid" style={{ gap: 10 }}>
-          <div className="row">
-            <input className="input" placeholder="Group name" value={name} onChange={(e) => setName(e.target.value)} />
-            <input
-              className="input"
-              placeholder="minParticipants"
-              type="number"
-              value={minParticipants}
-              onChange={(e) => setMinParticipants(Number(e.target.value))}
-              style={{ maxWidth: 160 }}
-            />
-          </div>
-
-          <input
-            className="input"
-            placeholder="Description (optional)"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-          />
-
-          <div className="row">
-            <button className="btn" onClick={onCreate} disabled={creating}>
-              {creating ? "Creating..." : "Create Group"}
-            </button>
-            <button className="btn secondary" onClick={load}>
-              Refresh
-            </button>
-          </div>
-        </div>
+    <div className="card">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+        <h2 style={{ margin: 0 }}>Groups</h2>
+        <button className="btn secondary" onClick={load}>Refresh</button>
       </div>
 
-      {err && <div style={{ color: "crimson" }}>{err}</div>}
-      {loading ? (
-        <div>Loading…</div>
-      ) : (
-        <div className="cards">
-          {items.map((g) => (
-            <div className="card" key={g.id}>
-              <div className="row" style={{ justifyContent: "space-between" }}>
-                <div style={{ fontWeight: 900 }}>{g.name}</div>
-                <span className="muted">{g.status}</span>
+      <div className="hr" />
+
+      <AdminTable
+        columns={[
+          { key: "id", title: "ID" },
+          { key: "name", title: "Name" },
+          { key: "productId", title: "ProductId" },
+          { key: "status", title: "Status" },
+          { key: "progress", title: "Progress" },
+          {
+            key: "_actions",
+            title: "Actions",
+            render: (g: GroupRow) => (
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button className="btn secondary" type="button" onClick={() => action(`/admin/groups/${g.id}/lock`)}>
+                  Lock
+                </button>
+                <button className="btn secondary" type="button" onClick={() => action(`/admin/groups/${g.id}/unlock`)}>
+                  Unlock
+                </button>
+                <button className="btn danger" type="button" onClick={() => onDelete(g.id)}>
+                  Delete
+                </button>
               </div>
-
-              {g.description && <div className="muted" style={{ marginTop: 6 }}>{g.description}</div>}
-
-              <div className="muted" style={{ marginTop: 10 }}>
-                {g.joinedCount}/{g.minParticipants} • {g.progress}%
-              </div>
-
-              <div className="hr" />
-
-              {/* Edit fields (quick inline) */}
-              <div className="grid" style={{ gap: 8 }}>
-                <input
-                  className="input"
-                  defaultValue={g.name}
-                  onBlur={(e) => {
-                    const v = e.target.value.trim();
-                    if (v && v !== g.name) onEdit(g.id, { name: v });
-                  }}
-                />
-                <input
-                  className="input"
-                  defaultValue={g.description ?? ""}
-                  placeholder="Description"
-                  onBlur={(e) => {
-                    const v = e.target.value.trim();
-                    if (v !== (g.description ?? "")) onEdit(g.id, { description: v || undefined });
-                  }}
-                />
-                <input
-                  className="input"
-                  defaultValue={g.minParticipants}
-                  type="number"
-                  onBlur={(e) => {
-                    const v = Number(e.target.value);
-                    if (Number.isFinite(v) && v >= 1 && v !== g.minParticipants) {
-                      onEdit(g.id, { minParticipants: v } as any);
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="hr" />
-
-              {/* Force status */}
-              <div className="row">
-                {STATUSES.map((s) => (
-                  <button
-                    key={s}
-                    className={`btn ${s === g.status ? "" : "secondary"}`}
-                    onClick={() => onForceStatus(g.id, s)}
-                  >
-                    {s}
-                  </button>
-                ))}
-              </div>
-
-              <div className="hr" />
-
-              <button className="btn danger" onClick={() => onDelete(g.id)}>
-                Delete
-              </button>
-            </div>
-          ))}
-        </div>
-      )}
+            ),
+          },
+        ]}
+        rows={items}
+      />
     </div>
   );
 }

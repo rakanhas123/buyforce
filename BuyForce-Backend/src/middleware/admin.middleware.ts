@@ -1,28 +1,32 @@
-import type { Request, Response, NextFunction } from "express";
+import { NextFunction, Response } from "express";
 import jwt from "jsonwebtoken";
 
-export function adminOnly(req: Request, res: Response, next: NextFunction) {
-  const header = req.headers.authorization;
+export type AdminRequest = {
+  admin?: { email: string };
+};
 
-  if (!header || !header.startsWith("Bearer ")) {
-    return res.status(401).json({ error: "Missing Authorization header" });
-  }
-
-  const token = header.slice("Bearer ".length).trim();
-  const secret = process.env.JWT_SECRET;
-  if (!secret) return res.status(500).json({ error: "Missing JWT_SECRET in env" });
-
+export function adminOnly(req: any, res: Response, next: NextFunction) {
   try {
-    const decoded = jwt.verify(token, secret) as any;
-    // you used subject -> decoded.sub, but role is in payload:
-    const role = decoded.role;
+    const auth = String(req.headers.authorization ?? "");
+    const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
 
-    if (role !== "ADMIN") {
+    if (!token) return res.status(401).json({ error: "Missing Authorization header" });
+
+    const payload = jwt.verify(
+      token,
+      process.env.ADMIN_JWT_SECRET || process.env.JWT_SECRET || "dev_secret"
+    ) as any;
+
+    const email = String(payload?.email ?? "").toLowerCase();
+    const role = String(payload?.role ?? "");
+
+    if (role !== "admin" || email !== "admin@buyforce.com") {
       return res.status(403).json({ error: "Admin only" });
     }
 
-    return next();
-  } catch {
-    return res.status(401).json({ error: "Invalid or expired token" });
+    (req as AdminRequest).admin = { email };
+    next();
+  } catch (e: any) {
+    return res.status(401).json({ error: e?.message ?? "Unauthorized" });
   }
 }

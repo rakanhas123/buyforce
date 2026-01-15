@@ -5,6 +5,7 @@ import { CreateGroupDto } from './dto/create-group.dto';
 @Controller('groups')
 export class GroupsController {
   constructor(private readonly groupsService: GroupsService) {}
+  
 
   @Post()
   create(@Body() dto: CreateGroupDto) {

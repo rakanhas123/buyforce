@@ -14,5 +14,9 @@
       "@buyforce/utils": ["packages/utils"],
       "@buyforce/types": ["packages/types"]
     }
-  }
+  
+  },
+
+       "include": ["src"]
+  
 }

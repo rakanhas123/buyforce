@@ -1,39 +1,27 @@
-import {
-  Body,
-  Controller,
-  Delete,
-  Get,
-  Param,
-  Post,
-} from '@nestjs/common';
-import { WishlistService } from './wishlist.service';
-import { CreateWishlistItemDto } from './dto/create-wishlist-item.dto';
+import { Controller, Delete, Get, Param, Post, Req } from "@nestjs/common";
+import { WishlistService } from "./wishlist.service";
 
-@Controller('wishlist')
+@Controller("wishlist")
 export class WishlistController {
-  constructor(private readonly wishlistService: WishlistService) {}
+  constructor(private readonly service: WishlistService) {}
 
-  // POST /wishlist  – הוספת פריט
-  @Post()
-  addItem(@Body() dto: CreateWishlistItemDto) {
-    return this.wishlistService.addItem(dto);
+  @Get()
+  list(@Req() req: any) {
+    return this.service.list(req.user.id);
   }
 
-  // GET /wishlist/user/:userId – כל ה-Wishlist של משתמש
-  @Get('user/:userId')
-  getUserWishlist(@Param('userId') userId: string) {
-    return this.wishlistService.getUserWishlist(userId);
+  @Post(":productId")
+  add(@Req() req: any, @Param("productId") productId: string) {
+    return this.service.add(req.user.id, productId);
   }
 
-  // DELETE /wishlist/:id – מחיקת פריט בודד
-  @Delete(':id')
-  removeItem(@Param('id') id: string) {
-    return this.wishlistService.removeItem(id);
+  @Delete(":productId")
+  remove(@Req() req: any, @Param("productId") productId: string) {
+    return this.service.remove(req.user.id, productId);
   }
 
-  // DELETE /wishlist/user/:userId – מחיקת כל ה-Wishlist של משתמש (לא חובה להשתמש)
-  @Delete('user/:userId')
-  clearUserWishlist(@Param('userId') userId: string) {
-    return this.wishlistService.clearUserWishlist(userId);
+  @Get("has/:productId")
+  has(@Req() req: any, @Param("productId") productId: string) {
+    return this.service.has(req.user.id, productId);
   }
 }

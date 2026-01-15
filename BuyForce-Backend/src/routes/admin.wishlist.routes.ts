@@ -4,18 +4,27 @@ import { adminOnly } from "../middleware/admin.middleware";
 
 const router = Router();
 
-// GET /v1/admin/wishlist
 router.get("/", adminOnly, async (_req, res) => {
-  const r = await pool.query(
-    `
-    SELECT w.id, w.name, w.url, w.created_at, w.user_id, u.email, u."fullName"
-    FROM wishlist w
-    JOIN users u ON u.id = w.user_id
-    ORDER BY w.created_at DESC
-    `
-  );
+  try {
+    const q = await pool.query(
+      `SELECT wi.*, u.email
+       FROM wishlist_items wi
+       LEFT JOIN users u ON u.id = wi.user_id
+       ORDER BY wi."createdAt" DESC NULLS LAST`
+    );
+    res.json({ items: q.rows });
+  } catch (e: any) {
+    res.status(500).json({ error: e?.message ?? "Failed to load wishlist" });
+  }
+});
 
-  return res.json({ items: r.rows });
+router.delete("/:id", adminOnly, async (req, res) => {
+  try {
+    await pool.query(`DELETE FROM wishlist_items WHERE id=$1`, [req.params.id]);
+    res.json({ ok: true });
+  } catch (e: any) {
+    res.status(400).json({ error: e?.message ?? "Delete failed" });
+  }
 });
 
 export default router;
