@@ -8,32 +8,32 @@ import Constants from 'expo-constants';
 const getBaseURL = () => {
   const debuggerHost = Constants.expoConfig?.hostUri?.split(':')[0];
   
-  console.log('🔍 debuggerHost:', debuggerHost);
-  console.log('🔍 Platform.OS:', Platform.OS);
+  console.log(' debuggerHost:', debuggerHost);
+  console.log(' Platform.OS:', Platform.OS);
   
   // For web platform, always use localhost
   if (Platform.OS === 'web') {
-    console.log('🌐 Using Web - localhost');
+    console.log(' Using Web - localhost');
     return 'http://localhost:3000';
   }
   
   // Force use WiFi IP for testing
-  const WIFI_IP = '192.168.160.126';
+  const WIFI_IP = '192.168.160.106';
   
   // If running on real device, use the debugger host IP
   if (debuggerHost && !debuggerHost.includes('localhost')) {
-    console.log('✅ Using real device IP:', debuggerHost);
+    console.log('Using real device IP:', debuggerHost);
     return `http://${debuggerHost}:3000`;
   }
   
   // For Android emulator
   if (Platform.OS === 'android') {
-    console.log('🤖 Using Android Emulator IP');
+    console.log(' Using Android Emulator IP');
     return 'http://10.0.2.2:3000'; // Android Emulator
   }
   
   // For iOS simulator or fallback
-  console.log('📱 Using fallback (WiFi IP)');
+  console.log(' Using fallback (WiFi IP)');
   return `http://${WIFI_IP}:3000`;
 };
 
@@ -124,6 +124,7 @@ export interface Category {
   id: number;
   name: string;
   parent_id?: number;
+  image_url?: string;
 }
 
 export interface LoginCredentials {
@@ -146,30 +147,30 @@ export interface AuthResponse {
 // Auth API
 export const authApi = {
   login: async (credentials: LoginCredentials): Promise<AuthResponse> => {
-    console.log('🔐 authApi.login called with:', credentials.email);
-    console.log('🌐 API URL:', API_URL);
+    console.log(' authApi.login called with:', credentials.email);
+    console.log(' API URL:', API_URL);
     try {
       const { data } = await api.post('/v1/auth/login', credentials);
-      console.log('✅ Login response received:', data);
+      console.log(' Login response received:', data);
       return data;
     } catch (error: any) {
-      console.error('❌ Login API error:', error.response?.data || error.message);
+      console.error(' Login API error:', error.response?.data || error.message);
       throw error;
     }
   },
 
   register: async (userData: RegisterData): Promise<AuthResponse> => {
-    console.log('🔐 authApi.register called with:', userData.email);
+    console.log(' authApi.register called with:', userData.email);
     try {
       const { data } = await api.post('/v1/auth/register', {
         fullName: userData.fullName,
         email: userData.email,
         password: userData.password,
       });
-      console.log('✅ Register response received:', data);
+      console.log(' Register response received:', data);
       return data;
     } catch (error: any) {
-      console.error('❌ Register API error:', error.response?.data || error.message);
+      console.error(' Register API error:', error.response?.data || error.message);
       throw error;
     }
   },
@@ -189,7 +190,7 @@ export const productsApi = {
   getAll: async (categoryId?: number): Promise<Product[]> => {
     const params = categoryId ? { categoryId } : {};
     const { data } = await api.get('/api/products', { params });
-    console.log('📦 Raw API response:', data);
+    console.log(' Raw API response:', data);
     // Backend returns { source: 'db', items: [...] }
     return data.items || data;
   },

@@ -1,68 +1,65 @@
 import "dotenv/config";
-import * as express from "express";
-import * as cors from "cors";
+import express from "express";
+import cors from "cors";
 
+/* ===============================
+   Routes Imports
+================================ */
 import productsRoutes from "./routes/products.routes";
-import groupsRoutes from "./routes/groups.routes";
-import paymentsRoutes from "./routes/payment.routes";
-import authRoutes from "./routes/auth.routes";
-import { dbHealthCheck } from "./db/db";
-import { webhookHandler } from "./routes/stripe-webhook"
-import authRouter from "./routes/auth.routes";
 import categoriesRoutes from "./routes/categories.routes";
-import homeRoutes from "./routes/home.routes";
+import groupsRoutes from "./routes/groups.routes";
+import authRoutes from "./routes/auth.routes";
 import wishlistRoutes from "./routes/wishlist.routes";
+
 import adminGroupsRoutes from "./routes/admin.groups.routes";
 import adminUsersRoutes from "./routes/admin.users.routes";
 import adminWishlistRoutes from "./routes/admin.wishlist.routes";
-import searchRoutes from "./routes/search.routes";
-import notificationsRoutes from "./routes/notifications.routes";
-import adminAuthRoutes from "./routes/admin.auth.routes";
-import adminNotificationsRoutes from "./routes/admin.notifications.routes";
-import adminProductsRoutes from "./routes/admin.products.routes";
-import adminCategoriesRoutes from "./routes/admin.categories.routes";
-import adminDashboardRoutes from "./routes/admin.dashboard.routes";
 
+import paypalRoutes from "./payments/paypal.routes";
 
+import { dbHealthCheck } from "./db/db";
+
+/* ===============================
+   App Init
+================================ */
 const app = express();
 
+/* ===============================
+   Middleware
+================================ */
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
-    credentials: true, // keep only if you use cookies/auth
+    origin: true, // allow all in development
+    credentials: true,
   })
 );
 
-// IMPORTANT: Stripe webhook routes typically require raw body,
-// but since we don’t know your Stripe setup now, keep JSON global.
-// If you later add Stripe webhooks, handle that specific route with express.raw().
-app.post("/v1/payments/webhook", express.raw({ type: "application/json" }), webhookHandler);
 app.use(express.json());
 
-/* =========================================
-   API Routes (v1)
-========================================= */
+// Request logging
+app.use((req, res, next) => {
+  console.log(` ${req.method} ${req.url}`);
+  next();
+});
+
+/* ===============================
+   API Routes
+================================ */
+app.use("/api/products", productsRoutes);
+app.use("/api/categories", categoriesRoutes);
+
+app.use("/v1/groups", groupsRoutes);
+app.use("/v1/payments/paypal", paypalRoutes);
+app.use("/v1/auth", authRoutes);
+app.use("/v1/wishlist", wishlistRoutes);
+
 app.use("/v1/admin/groups", adminGroupsRoutes);
 app.use("/v1/admin/users", adminUsersRoutes);
 app.use("/v1/admin/wishlist", adminWishlistRoutes);
-app.use("/v1/products", productsRoutes);
-app.use("/v1/groups", groupsRoutes);
-app.use("/v1/payments", paymentsRoutes);
-app.use("/v1/auth", authRoutes);
-app.use("/v1/auth", authRouter);
-app.use("/v1/wishlist", wishlistRoutes);
-app.use("/v1/categories", categoriesRoutes);
-app.use("/v1/home", homeRoutes);
-app.use("/v1/search", searchRoutes);
-app.use("/v1/admin/auth", adminAuthRoutes);
-app.use("/v1/admin/notifications", adminNotificationsRoutes);
-app.use("/v1/notifications", notificationsRoutes);
-app.use("/v1/admin/products", adminProductsRoutes);
-app.use("/v1/admin/categories", adminCategoriesRoutes);
-app.use("/v1/admin/dashboard", adminDashboardRoutes);
-/* =========================================
-   Health
-========================================= */
+
+/* ===============================
+   Health Check
+================================ */
 app.get("/v1/health", async (_req, res) => {
   try {
     const dbOk = await dbHealthCheck();
@@ -83,7 +80,34 @@ app.get("/v1/health", async (_req, res) => {
   }
 });
 
+/* ===============================
+   Error Handlers
+================================ */
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error("=== UNHANDLED ERROR ===");
+  console.error(err);
+  res.status(500).json({ error: "Internal server error", message: err.message });
+});
+
+process.on('uncaughtException', (err) => {
+  console.error("=== UNCAUGHT EXCEPTION ===");
+  console.error(err);
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error("=== UNHANDLED REJECTION ===");
+  console.error('Promise:', promise);
+  console.error('Reason:', reason);
+});
+
+/* ===============================
+   Server Start
+================================ */
 const port = Number(process.env.PORT || 3000);
-app.listen(port, () => {
-  console.log(`✅ Server running on http://localhost:${port}`);
+const host = process.env.HOST || "0.0.0.0";
+
+app.listen(port, host, () => {
+  console.log(` Server running on http://${host}:${port}`);
+  console.log(` For mobile device, use your computer's IP address`);
 });

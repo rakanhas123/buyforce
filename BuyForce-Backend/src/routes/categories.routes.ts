@@ -3,26 +3,45 @@ import { pool } from "../db/db";
 
 const router = Router();
 
+/**
+ * GET /api/categories
+ * Get all categories
+ */
 router.get("/", async (_req, res) => {
-  const q = await pool.query(`SELECT id, name, slug FROM categories ORDER BY name ASC`);
-  res.json(q.rows);
+  try {
+    const result = await pool.query(
+      `SELECT id, name, parent_id, image_url FROM categories ORDER BY name ASC`
+    );
+    
+    return res.json(result.rows);
+  } catch (e: any) {
+    console.error("Error fetching categories:", e);
+    return res.status(500).json({ error: e?.message ?? "Failed to fetch categories" });
+  }
 });
 
-// products in category by slug
-router.get("/:slug/products", async (req, res) => {
-  const slug = String(req.params.slug);
-  const q = await pool.query(
-    `
-    SELECT p.*
-    FROM products p
-    JOIN categories c ON c.id = p."categoryId"
-    WHERE c.slug=$1 AND COALESCE(p."isActive", true)=true
-    ORDER BY p."createdAt" DESC NULLS LAST
-    LIMIT 100
-    `,
-    [slug]
-  );
-  res.json(q.rows);
+/**
+ * GET /api/categories/:id
+ * Get a single category by ID
+ */
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const result = await pool.query(
+      `SELECT id, name, parent_id, image_url FROM categories WHERE id = $1`,
+      [id]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: "Category not found" });
+    }
+
+    return res.json(result.rows[0]);
+  } catch (e: any) {
+    console.error("Error fetching category:", e);
+    return res.status(500).json({ error: e?.message ?? "Failed to fetch category" });
+  }
 });
 
 export default router;
