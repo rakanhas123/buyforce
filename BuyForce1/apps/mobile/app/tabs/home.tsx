@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import {
   View,
   Text,
@@ -9,7 +9,6 @@ import {
   ActivityIndicator,
   ScrollView,
   SafeAreaView,
-<<<<<<< HEAD
   Animated,
   Dimensions,
   Modal,
@@ -17,7 +16,6 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { useState, useEffect, useRef } from "react";
 
 import { productsApi, Product } from "../lib/api";
 import { useWishlist } from "../lib/WishlistContext";
@@ -62,34 +60,11 @@ interface Group {
   currentParticipants: number;
   pricePerUnit: number;
   joined: boolean;
-=======
-  Modal,
-  Alert,
-  RefreshControl,
-  ImageStyle,
-} from "react-native";
-import { useRouter } from "expo-router";
-
-import { categoriesApi, productsApi, groupsApi, Product, Group } from "../../lib/api";
-import { useWishlist } from "../../lib/WishlistContext";
-
-type CategoryChip = { id: string; label: string };
-
-function mapGroupsByProduct(groups: Group[]): Record<string, Group> {
-  const map: Record<string, Group> = {};
-  for (const g of groups) {
-    const pid = String((g as any).productId ?? (g as any).product_id ?? "");
-    if (!pid) continue;
-    if (!map[pid]) map[pid] = g;
-  }
-  return map;
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
 }
 
 export default function HomeScreen() {
   const router = useRouter();
   const { wishlist, toggleWishlist } = useWishlist();
-<<<<<<< HEAD
   const scrollViewRef = useRef<ScrollView>(null);
   const bannerScrollX = useRef(new Animated.Value(0)).current;
 
@@ -98,54 +73,60 @@ export default function HomeScreen() {
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [currentBannerIndex, setCurrentBannerIndex] = useState(0);
-  
+
   // Groups state - store groups per product
-  const [productGroups, setProductGroups] = useState<{[key: number]: Group[]}>({});
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [productGroups, setProductGroups] = useState<{
+    [key: number]: Group[];
+  }>({});
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(
+    null,
+  );
   const [showGroupModal, setShowGroupModal] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedGroup, setSelectedGroup] = useState<Group | null>(null);
   const [paymentLoading, setPaymentLoading] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal">("stripe");
+  const [paymentMethod, setPaymentMethod] = useState<"stripe" | "paypal">(
+    "stripe",
+  );
 
   useEffect(() => {
     loadProducts();
     const bannerTimer = setInterval(() => {
-      setCurrentBannerIndex(prev => (prev + 1) % BANNERS.length);
+      setCurrentBannerIndex((prev) => (prev + 1) % BANNERS.length);
     }, 4000);
     return () => clearInterval(bannerTimer);
   }, []);
 
   const loadProducts = async () => {
     try {
-      console.log('Loading products from API...');
+      console.log("Loading products from API...");
       const data = await productsApi.getAll();
-      console.log('Products loaded:', data.length, 'products');
+      console.log("Products loaded:", data.length, "products");
       setProducts(data);
-      
+
       // Initialize groups for each product
-      const groupsMap: {[key: number]: Group[]} = {};
-      data.forEach(product => {
+      const groupsMap: { [key: number]: Group[] } = {};
+      data.forEach((product) => {
         groupsMap[product.id] = [
           {
             id: `${product.id}-1`,
             targetQuantity: 5,
             currentParticipants: Math.floor(Math.random() * 4) + 1,
-            pricePerUnit: parseFloat(product.price?.toString() || '0'),
+            pricePerUnit: parseFloat(product.price?.toString() || "0"),
             joined: false,
           },
           {
             id: `${product.id}-2`,
             targetQuantity: 10,
             currentParticipants: Math.floor(Math.random() * 8) + 2,
-            pricePerUnit: parseFloat(product.price?.toString() || '0') * 0.95,
+            pricePerUnit: parseFloat(product.price?.toString() || "0") * 0.95,
             joined: false,
           },
           {
             id: `${product.id}-3`,
             targetQuantity: 20,
             currentParticipants: Math.floor(Math.random() * 15) + 3,
-            pricePerUnit: parseFloat(product.price?.toString() || '0') * 0.90,
+            pricePerUnit: parseFloat(product.price?.toString() || "0") * 0.9,
             joined: false,
           },
         ];
@@ -159,7 +140,7 @@ export default function HomeScreen() {
   };
 
   const joinGroup = (productId: number, groupId: string) => {
-    const group = productGroups[productId]?.find(g => g.id === groupId);
+    const group = productGroups[productId]?.find((g) => g.id === groupId);
     if (group && group.currentParticipants < group.targetQuantity) {
       setSelectedGroup(group);
       setShowGroupModal(false);
@@ -173,101 +154,153 @@ export default function HomeScreen() {
     setPaymentLoading(true);
     try {
       // Step 1: Request Payment Intent from backend
-      const API_BASE = Platform.OS === 'web' ? 'http://localhost:3000' : 'http://192.168.160.106:3000';
-      const paymentIntentResponse = await fetch(`${API_BASE}/api/payments/group-join`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const API_BASE =
+        Platform.OS === "web"
+          ? "http://localhost:3000"
+          : "http://192.168.160.106:3000";
+      const paymentIntentResponse = await fetch(
+        `${API_BASE}/api/payments/group-join`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            productId: selectedProductId,
+            groupId: selectedGroup.id,
+            amount: selectedGroup.pricePerUnit,
+            paymentMethod: paymentMethod,
+          }),
         },
-        body: JSON.stringify({
-          productId: selectedProductId,
-          groupId: selectedGroup.id,
-          amount: selectedGroup.pricePerUnit,
-          paymentMethod: paymentMethod,
-        }),
-      });
+      );
 
       const intentData = await paymentIntentResponse.json();
 
       if (!intentData.success) {
-        Alert.alert("Payment Error", intentData.message || "Failed to initialize payment");
+        Alert.alert(
+          "Payment Error",
+          intentData.message || "Failed to initialize payment",
+        );
         return;
       }
 
       // Step 2: For demo purposes - confirm payment directly
       // In production, this would involve actual Stripe checkout or PayPal flow
-      const confirmResponse = await fetch(`${API_BASE}/api/payments/confirm-payment`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const confirmResponse = await fetch(
+        `${API_BASE}/api/payments/confirm-payment`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            paymentIntentId: intentData.paymentIntentId,
+            productId: selectedProductId,
+            groupId: selectedGroup.id,
+            userId: "guest-user",
+          }),
         },
-        body: JSON.stringify({
-          paymentIntentId: intentData.paymentIntentId,
-          productId: selectedProductId,
-          groupId: selectedGroup.id,
-          userId: "guest-user",
-        }),
-      });
+      );
 
       const confirmData = await confirmResponse.json();
 
       if (confirmData.success) {
         // Update group participants
-        setProductGroups(prev => ({
+        setProductGroups((prev) => ({
           ...prev,
-          [selectedProductId]: prev[selectedProductId].map(group =>
+          [selectedProductId]: prev[selectedProductId].map((group) =>
             group.id === selectedGroup.id
-              ? { ...group, currentParticipants: group.currentParticipants + 1, joined: true }
-              : group
+              ? {
+                  ...group,
+                  currentParticipants: group.currentParticipants + 1,
+                  joined: true,
+                }
+              : group,
           ),
         }));
 
         setShowPaymentModal(false);
         Alert.alert(
           "Payment Successful!",
-          `You've successfully joined the group!\n\nAmount paid: $${selectedGroup.pricePerUnit.toFixed(2)}\nTransaction ID: ${confirmData.transactionId}\n\nPayment Method: ${paymentMethod === 'paypal' ? 'PayPal' : 'Card'}`,
-          [{ text: "OK", onPress: () => setSelectedGroup(null) }]
+          `You've successfully joined the group!\n\nAmount paid: $${selectedGroup.pricePerUnit.toFixed(2)}\nTransaction ID: ${confirmData.transactionId}\n\nPayment Method: ${paymentMethod === "paypal" ? "PayPal" : "Card"}`,
+          [{ text: "OK", onPress: () => setSelectedGroup(null) }],
         );
       } else {
-        Alert.alert("Payment Failed", confirmData.message || "Please try again");
+        Alert.alert(
+          "Payment Failed",
+          confirmData.message || "Please try again",
+        );
       }
     } catch (error) {
-      Alert.alert("Error", "Failed to process payment. Please check your connection.");
+      Alert.alert(
+        "Error",
+        "Failed to process payment. Please check your connection.",
+      );
       console.error("Payment error:", error);
     } finally {
       setPaymentLoading(false);
     }
   };
 
-  const filteredProducts = products.filter(p => {
+  const filteredProducts = products.filter((p) => {
     const matchSearch = p.name.toLowerCase().includes(search.toLowerCase());
-    
+
     // Category filter
     if (selectedCategory !== "all") {
       const categoryName = p.category?.name?.toLowerCase() || "";
       const productName = p.name.toLowerCase();
-      
+
       if (selectedCategory === "electronics") {
-        const electronicsKeywords = ["laptop", "computer", "screen", "monitor", "mouse", "keyboard", "headphone", "speaker", "camera"];
-        const matchesElectronics = electronicsKeywords.some(keyword => 
-          categoryName.includes(keyword) || productName.includes(keyword)
+        const electronicsKeywords = [
+          "laptop",
+          "computer",
+          "screen",
+          "monitor",
+          "mouse",
+          "keyboard",
+          "headphone",
+          "speaker",
+          "camera",
+        ];
+        const matchesElectronics = electronicsKeywords.some(
+          (keyword) =>
+            categoryName.includes(keyword) || productName.includes(keyword),
         );
         if (!matchesElectronics) return false;
       } else if (selectedCategory === "mobile") {
-        const mobileKeywords = ["phone", "mobile", "iphone", "samsung", "tablet", "ipad"];
-        const matchesMobile = mobileKeywords.some(keyword => 
-          categoryName.includes(keyword) || productName.includes(keyword)
+        const mobileKeywords = [
+          "phone",
+          "mobile",
+          "iphone",
+          "samsung",
+          "tablet",
+          "ipad",
+        ];
+        const matchesMobile = mobileKeywords.some(
+          (keyword) =>
+            categoryName.includes(keyword) || productName.includes(keyword),
         );
         if (!matchesMobile) return false;
       } else if (selectedCategory === "computer") {
-        const computerKeywords = ["laptop", "computer", "macbook", "pc", "desktop", "keyboard", "mouse", "monitor", "webcam"];
-        const matchesComputer = computerKeywords.some(keyword => 
-          categoryName.includes(keyword) || productName.includes(keyword)
+        const computerKeywords = [
+          "laptop",
+          "computer",
+          "macbook",
+          "pc",
+          "desktop",
+          "keyboard",
+          "mouse",
+          "monitor",
+          "webcam",
+        ];
+        const matchesComputer = computerKeywords.some(
+          (keyword) =>
+            categoryName.includes(keyword) || productName.includes(keyword),
         );
         if (!matchesComputer) return false;
       }
     }
-    
+
     return matchSearch;
   });
 
@@ -289,7 +322,7 @@ export default function HomeScreen() {
   const renderGroupModal = () => {
     if (!selectedProductId) return null;
     const groups = productGroups[selectedProductId] || [];
-    const product = products.find(p => p.id === selectedProductId);
+    const product = products.find((p) => p.id === selectedProductId);
 
     return (
       <Modal
@@ -313,20 +346,27 @@ export default function HomeScreen() {
             <Text style={styles.productTitle}>{product?.name}</Text>
 
             <View style={styles.groupsList}>
-              {groups.map(group => {
-                const progress = (group.currentParticipants / group.targetQuantity) * 100;
-                const remaining = group.targetQuantity - group.currentParticipants;
+              {groups.map((group) => {
+                const progress =
+                  (group.currentParticipants / group.targetQuantity) * 100;
+                const remaining =
+                  group.targetQuantity - group.currentParticipants;
 
                 return (
                   <View key={group.id} style={styles.groupCard}>
                     <View style={styles.groupHeader}>
                       <View>
-                        <Text style={styles.groupTarget}>Group: {group.targetQuantity} units</Text>
+                        <Text style={styles.groupTarget}>
+                          Group: {group.targetQuantity} units
+                        </Text>
                         <Text style={styles.groupParticipants}>
-                          👥 {group.currentParticipants}/{group.targetQuantity} participants
+                          👥 {group.currentParticipants}/{group.targetQuantity}{" "}
+                          participants
                         </Text>
                       </View>
-                      <Text style={styles.groupPrice}>${group.pricePerUnit.toFixed(2)}</Text>
+                      <Text style={styles.groupPrice}>
+                        ${group.pricePerUnit.toFixed(2)}
+                      </Text>
                     </View>
 
                     <View style={styles.progressBarContainer}>
@@ -358,7 +398,9 @@ export default function HomeScreen() {
                       </>
                     ) : (
                       <View style={styles.groupCompleteBadge}>
-                        <Text style={styles.groupCompleteText}>✓ Group Full</Text>
+                        <Text style={styles.groupCompleteText}>
+                          ✓ Group Full
+                        </Text>
                       </View>
                     )}
                   </View>
@@ -397,27 +439,43 @@ export default function HomeScreen() {
             {/* Payment Summary */}
             <View style={styles.paymentSummary}>
               <Text style={styles.summaryTitle}>Order Summary</Text>
-              
+
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Amount to Pay:</Text>
-                <Text style={styles.summaryValue}>${selectedGroup.pricePerUnit.toFixed(2)}</Text>
+                <Text style={styles.summaryValue}>
+                  ${selectedGroup.pricePerUnit.toFixed(2)}
+                </Text>
               </View>
 
               <View style={styles.summaryRow}>
                 <Text style={styles.summaryLabel}>Group Target:</Text>
-                <Text style={styles.summaryValue}>{selectedGroup.targetQuantity} units</Text>
+                <Text style={styles.summaryValue}>
+                  {selectedGroup.targetQuantity} units
+                </Text>
               </View>
 
-              <View style={[styles.summaryRow, { borderBottomWidth: 1, borderBottomColor: "#e2e8f0", paddingBottom: 12 }]}>
+              <View
+                style={[
+                  styles.summaryRow,
+                  {
+                    borderBottomWidth: 1,
+                    borderBottomColor: "#e2e8f0",
+                    paddingBottom: 12,
+                  },
+                ]}
+              >
                 <Text style={styles.summaryLabel}>Current Participants:</Text>
-                <Text style={styles.summaryValue}>{selectedGroup.currentParticipants + 1}/{selectedGroup.targetQuantity}</Text>
+                <Text style={styles.summaryValue}>
+                  {selectedGroup.currentParticipants + 1}/
+                  {selectedGroup.targetQuantity}
+                </Text>
               </View>
             </View>
 
             {/* Payment Method Selection */}
             <View style={styles.paymentMethodSection}>
               <Text style={styles.sectionTitle}>Select Payment Method</Text>
-              
+
               <Pressable
                 style={[
                   styles.paymentMethodButton,
@@ -427,11 +485,15 @@ export default function HomeScreen() {
                 disabled={paymentLoading}
               >
                 <View style={styles.radioButton}>
-                  {paymentMethod === "paypal" && <View style={styles.radioDot} />}
+                  {paymentMethod === "paypal" && (
+                    <View style={styles.radioDot} />
+                  )}
                 </View>
                 <View style={styles.paymentMethodContent}>
                   <Text style={styles.paymentMethodTitle}>🅿️ PayPal</Text>
-                  <Text style={styles.paymentMethodDesc}>Fast & Secure Payment</Text>
+                  <Text style={styles.paymentMethodDesc}>
+                    Fast & Secure Payment
+                  </Text>
                 </View>
               </Pressable>
 
@@ -444,18 +506,26 @@ export default function HomeScreen() {
                 disabled={paymentLoading}
               >
                 <View style={styles.radioButton}>
-                  {paymentMethod === "stripe" && <View style={styles.radioDot} />}
+                  {paymentMethod === "stripe" && (
+                    <View style={styles.radioDot} />
+                  )}
                 </View>
                 <View style={styles.paymentMethodContent}>
-                  <Text style={styles.paymentMethodTitle}>💳 Credit/Debit Card</Text>
-                  <Text style={styles.paymentMethodDesc}>Visa, Mastercard, Amex</Text>
+                  <Text style={styles.paymentMethodTitle}>
+                    💳 Credit/Debit Card
+                  </Text>
+                  <Text style={styles.paymentMethodDesc}>
+                    Visa, Mastercard, Amex
+                  </Text>
                 </View>
               </Pressable>
             </View>
 
             {/* Payment Info */}
             <View style={styles.paymentInfo}>
-              <Text style={styles.infoText}>🔒 Your payment information is secure and encrypted</Text>
+              <Text style={styles.infoText}>
+                🔒 Your payment information is secure and encrypted
+              </Text>
             </View>
 
             {/* Action Buttons */}
@@ -469,12 +539,17 @@ export default function HomeScreen() {
               </Pressable>
 
               <Pressable
-                style={[styles.payButton, paymentLoading && styles.payButtonDisabled]}
+                style={[
+                  styles.payButton,
+                  paymentLoading && styles.payButtonDisabled,
+                ]}
                 onPress={processPayment}
                 disabled={paymentLoading}
               >
                 <Text style={styles.payButtonText}>
-                  {paymentLoading ? "Processing..." : `Pay $${selectedGroup.pricePerUnit.toFixed(2)}`}
+                  {paymentLoading
+                    ? "Processing..."
+                    : `Pay $${selectedGroup.pricePerUnit.toFixed(2)}`}
                 </Text>
               </Pressable>
             </View>
@@ -485,11 +560,12 @@ export default function HomeScreen() {
   };
 
   const renderProductCard = ({ item }: { item: Product }) => {
-    const mainImage = item.images?.find(img => img.is_main)?.image_url || 
-                      item.images?.[0]?.image_url || 
-                      "https://via.placeholder.com/300";
-    
-    const price = parseFloat(item.price?.toString() || '0');
+    const mainImage =
+      item.images?.find((img) => img.is_main)?.image_url ||
+      item.images?.[0]?.image_url ||
+      "https://via.placeholder.com/300";
+
+    const price = parseFloat(item.price?.toString() || "0");
     const isInWishlist = wishlist.includes(item.id);
     const inStock = (item.stock_quantity || item.stock || 0) > 0;
     const discount = Math.floor(Math.random() * 20) + 5;
@@ -503,11 +579,8 @@ export default function HomeScreen() {
       >
         {/* Product Image */}
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: mainImage }}
-            style={styles.productImage}
-          />
-          
+          <Image source={{ uri: mainImage }} style={styles.productImage} />
+
           {/* Discount Badge */}
           {inStock && (
             <View style={styles.discountBadge}>
@@ -518,7 +591,9 @@ export default function HomeScreen() {
           {/* Stock Badge */}
           <View style={[styles.stockBadge, !inStock && styles.outOfStockBadge]}>
             <Text style={styles.badgeText}>
-              {inStock ? `${item.stock_quantity || item.stock || 0} in stock` : "Out"}
+              {inStock
+                ? `${item.stock_quantity || item.stock || 0} in stock`
+                : "Out"}
             </Text>
           </View>
 
@@ -552,7 +627,9 @@ export default function HomeScreen() {
           </View>
 
           <View style={styles.priceContainer}>
-            <Text style={styles.price}>${(price * (1 - discount / 100)).toFixed(2)}</Text>
+            <Text style={styles.price}>
+              ${(price * (1 - discount / 100)).toFixed(2)}
+            </Text>
             <Text style={styles.originalPrice}>${price.toFixed(2)}</Text>
           </View>
 
@@ -566,10 +643,7 @@ export default function HomeScreen() {
           )}
 
           <Pressable
-            style={[
-              styles.addButton,
-              !inStock && styles.addButtonDisabled,
-            ]}
+            style={[styles.addButton, !inStock && styles.addButtonDisabled]}
             disabled={!inStock}
             onPress={() => {
               setSelectedProductId(item.id);
@@ -625,12 +699,14 @@ export default function HomeScreen() {
             scrollEventThrottle={16}
             onScroll={Animated.event(
               [{ nativeEvent: { contentOffset: { x: bannerScrollX } } }],
-              { useNativeDriver: false }
+              { useNativeDriver: false },
             )}
           >
-            {BANNERS.map(banner => (
+            {BANNERS.map((banner) => (
               <View key={banner.id} style={styles.bannerWrapper}>
-                <View style={[styles.banner, { backgroundColor: banner.color }]}>
+                <View
+                  style={[styles.banner, { backgroundColor: banner.color }]}
+                >
                   <Text style={styles.bannerIcon}>{banner.icon}</Text>
                   <Text style={styles.bannerTitle}>{banner.title}</Text>
                   <Text style={styles.bannerSubtitle}>{banner.subtitle}</Text>
@@ -659,7 +735,7 @@ export default function HomeScreen() {
           style={styles.categoriesContainer}
           contentContainerStyle={styles.categoriesContent}
         >
-          {CATEGORIES.map(category => (
+          {CATEGORIES.map((category) => (
             <Pressable
               key={category.id}
               style={[
@@ -672,283 +748,16 @@ export default function HomeScreen() {
               <Text
                 style={[
                   styles.categoryLabel,
-                  selectedCategory === category.id && styles.categoryLabelActive,
+                  selectedCategory === category.id &&
+                    styles.categoryLabelActive,
                 ]}
               >
-                {category.label}
-=======
-
-  const [products, setProducts] = useState<Product[]>([]);
-  const [groupsByProduct, setGroupsByProduct] = useState<Record<string, Group>>({});
-  const [categories, setCategories] = useState<CategoryChip[]>([{ id: "all", label: "All Products" }]);
-
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-
-  const [search, setSearch] = useState("");
-  const [selectedCategoryId, setSelectedCategoryId] = useState("all");
-
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null);
-  const [groupDetail, setGroupDetail] = useState<Group | null>(null);
-  const [groupModalOpen, setGroupModalOpen] = useState(false);
-
-  const [busyProductId, setBusyProductId] = useState<string | null>(null);
-  const [modalBusy, setModalBusy] = useState(false);
-
-  const loadAll = async () => {
-    const [cats, prods, groups] = await Promise.all([
-      categoriesApi.getAll().catch(() => []),
-      productsApi.getAll(),
-      groupsApi.getAll().catch(() => []),
-    ]);
-
-    setProducts(prods);
-
-    const chips: CategoryChip[] = [
-      { id: "all", label: "All Products" },
-      ...cats.map((c: any) => ({ id: String(c.id), label: c.name })),
-    ];
-    setCategories(chips);
-
-    setGroupsByProduct(mapGroupsByProduct(groups));
-  };
-
-  useEffect(() => {
-    (async () => {
-      try {
-        setLoading(true);
-        await loadAll();
-      } catch (e: any) {
-        Alert.alert("Error", e?.message ?? "Failed to load home data");
-      } finally {
-        setLoading(false);
-      }
-    })();
-  }, []);
-
-  const onRefresh = async () => {
-    setRefreshing(true);
-    try {
-      await loadAll();
-    } finally {
-      setRefreshing(false);
-    }
-  };
-
-  const filteredProducts = useMemo(() => {
-    const s = search.trim().toLowerCase();
-    return products.filter((p) => {
-      const nameOk = !s || String(p.name).toLowerCase().includes(s);
-      if (selectedCategoryId === "all") return nameOk;
-
-      const pCatId = String(p.category?.id ?? p.categoryId ?? "");
-      return nameOk && pCatId === String(selectedCategoryId);
-    });
-  }, [products, search, selectedCategoryId]);
-
-  const getMainImage = (p: Product) =>
-    p.imageUrl?.trim() ||
-    p.images?.find((x) => x.is_main)?.image_url ||
-    p.images?.[0]?.image_url ||
-    "https://picsum.photos/seed/buyforce/600/600";
-
-  const refreshGroupDetail = async (productId: string) => {
-    const g = groupsByProduct[String(productId)];
-    if (!g?.id) {
-      setGroupDetail(null);
-      return;
-    }
-    try {
-      const detail = await groupsApi.getById(String(g.id));
-      setGroupDetail(detail);
-    } catch {
-      setGroupDetail(null);
-    }
-  };
-
-  const openGroupModal = async (productId: string) => {
-    setSelectedProductId(productId);
-    setGroupModalOpen(true);
-    setGroupDetail(null);
-    await refreshGroupDetail(productId);
-  };
-
-  // ✅ MAIN FIX: after join/leave, fetch fresh group and update card counts
-  const toggleJoinLeave = async (productId: string, inModal: boolean) => {
-    const pid = String(productId);
-    const g = groupsByProduct[pid];
-
-    if (!g?.id) {
-      Alert.alert("No group", "This product doesn't have a group yet.");
-      return;
-    }
-
-    const groupId = String(g.id);
-
-    try {
-      if (inModal) setModalBusy(true);
-      else setBusyProductId(pid);
-const before = await groupsApi.getById(groupId);
-const joined = Boolean(before.isJoined);
-
-if (joined) await groupsApi.leave(groupId);
-else await groupsApi.join(groupId);
-
-const after = await groupsApi.getById(groupId);
-
-setGroupDetail(after);
-
-      setGroupsByProduct((prev) => ({
-        ...prev,
-        [pid]: {
-          ...(prev[pid] as any),
-          joinedCount: Number((after as any).joinedCount ?? 0),
-          minParticipants: Number((after as any).minParticipants ?? 0),
-          progress: Number((after as any).progress ?? 0),
-          status: (after as any).status ?? (prev[pid] as any).status,
-          id: groupId,
-          productId: (prev[pid] as any).productId ?? pid,
-        },
-      }));
-    } catch (e: any) {
-      Alert.alert("Error", e?.message ?? "Failed to join/leave");
-    } finally {
-      if (inModal) setModalBusy(false);
-      else setBusyProductId(null);
-    }
-  };
-
-  const ProductCard = ({ item }: { item: Product }) => {
-    const pid = String(item.id);
-    const group = groupsByProduct[pid];
-
-    const mainImage = getMainImage(item);
-    const regular = Number((item as any).priceRegular ?? (item as any).price ?? 0);
-    const groupPrice = Number((item as any).priceGroup ?? 0);
-
-    const joinedCount = Number((group as any)?.joinedCount ?? 0);
-    const min = Number((group as any)?.minParticipants ?? 0);
-    const status = String((group as any)?.status ?? "—");
-
-    const busy = busyProductId === pid;
-
-    // ✅ JOIN/LEAVE label comes from freshest detail if it matches this group
-    const joined = Boolean(groupDetail?.id === group?.id ? (groupDetail as any)?.isJoined : false);
-
-    const isInWishlist = wishlist.includes(pid);
-
-    return (
-      <View style={styles.card}>
-        <Pressable onPress={() => router.push(`/product/${pid}`)}>
-          <View style={styles.imageWrap}>
-            <Image source={{ uri: mainImage }} style={styles.image} />
-          </View>
-        </Pressable>
-
-        <View style={styles.cardBody}>
-          <Text style={styles.title} numberOfLines={2}>{item.name}</Text>
-          <Text style={styles.meta} numberOfLines={1}>{item.category?.name ?? "No category"}</Text>
-
-          <View style={styles.priceRow}>
-            <Text style={styles.price}>₪{Number.isFinite(regular) ? regular.toFixed(0) : "0"}</Text>
-            {groupPrice > 0 && <Text style={styles.groupPrice}>₪{groupPrice.toFixed(0)}</Text>}
-          </View>
-
-          <View style={styles.groupBox}>
-            <Text style={styles.groupText} numberOfLines={1}>
-              {group?.id ? `${status} (${joinedCount}/${min || "—"})` : "No group"}
-            </Text>
-
-            <Pressable
-              style={[styles.joinLeaveBtn, (busy || !group?.id) && { opacity: 0.6 }]}
-              disabled={busy || !group?.id}
-              onPress={() => toggleJoinLeave(pid, false)}
-            >
-              <Text style={styles.joinLeaveText}>
-                {busy ? "..." : joined ? "LEAVE" : "JOIN"}
-              </Text>
-            </Pressable>
-          </View>
-
-          <View style={styles.actionsRow}>
-            <Pressable
-              style={[styles.openBtn, !group?.id && { opacity: 0.5 }]}
-              onPress={() => {
-                if (!group?.id) {
-                  Alert.alert("No group", "No group exists for this product yet.");
-                  return;
-                }
-                openGroupModal(pid);
-              }}
-            >
-              <Text style={styles.openBtnText}>GROUP</Text>
-            </Pressable>
-
-            <Pressable style={styles.heartBtn} onPress={() => toggleWishlist(pid)} hitSlop={10}>
-              <Text style={styles.heart}>{isInWishlist ? "❤️" : "🤍"}</Text>
-            </Pressable>
-          </View>
-        </View>
-      </View>
-    );
-  };
-
-  const selectedProduct = selectedProductId ? products.find((p) => String(p.id) === selectedProductId) : null;
-  const selectedGroup = selectedProductId ? groupsByProduct[String(selectedProductId)] : null;
-
-  const modalJoinedCount = Number((groupDetail as any)?.joinedCount ?? (selectedGroup as any)?.joinedCount ?? 0);
-  const modalMin = Number((groupDetail as any)?.minParticipants ?? (selectedGroup as any)?.minParticipants ?? 0);
-  const modalStatus = String((groupDetail as any)?.status ?? (selectedGroup as any)?.status ?? "—");
-  const modalIsJoined = Boolean((groupDetail as any)?.isJoined);
-
-  if (loading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" />
-          <Text style={styles.loadingText}>Loading...</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  return (
-    <SafeAreaView style={styles.container}>
-      <ScrollView
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        contentContainerStyle={{ paddingBottom: 24 }}
-      >
-        <View style={styles.header}>
-          <Text style={styles.logo}>🛍️ BuyForce</Text>
-          <Text style={styles.tagline}>Smart Group Shopping</Text>
-        </View>
-
-        <View style={styles.searchContainer}>
-          <TextInput
-            placeholder="Search products..."
-            placeholderTextColor="#9ca3af"
-            value={search}
-            onChangeText={setSearch}
-            style={styles.searchInput}
-          />
-        </View>
-
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipsRow}>
-          {categories.map((c) => (
-            <Pressable
-              key={c.id}
-              style={[styles.chip, selectedCategoryId === c.id && styles.chipActive]}
-              onPress={() => setSelectedCategoryId(c.id)}
-            >
-              <Text style={[styles.chipText, selectedCategoryId === c.id && styles.chipTextActive]}>
-                {c.label}
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
+                {category.label}{" "}
               </Text>
             </Pressable>
           ))}
         </ScrollView>
 
-<<<<<<< HEAD
         {/* Section Title */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>✨ Popular Products</Text>
@@ -960,7 +769,7 @@ setGroupDetail(after);
         {/* Products Grid */}
         {filteredProducts.length > 0 ? (
           <View style={styles.productsGrid}>
-            {filteredProducts.map(product => (
+            {filteredProducts.map((product) => (
               <View key={product.id} style={styles.gridItem}>
                 {renderProductCard({ item: product })}
               </View>
@@ -970,94 +779,28 @@ setGroupDetail(after);
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyIcon}>🔍</Text>
             <Text style={styles.emptyText}>No products found</Text>
-            <Text style={styles.emptySubtext}>Try another search or select a different category</Text>
+            <Text style={styles.emptySubtext}>
+              Try another search or select a different category
+            </Text>
           </View>
         )}
 
         {/* Footer */}
         <View style={styles.footer}>
-          <Text style={styles.footerText}>© 2024 BuyForce. All rights reserved</Text>
+          <Text style={styles.footerText}>
+            © 2024 BuyForce. All rights reserved
+          </Text>
         </View>
       </ScrollView>
-
       {/* Group Modal */}
       {renderGroupModal()}
-
       {/* Payment Modal */}
-      {renderPaymentModal()}
-=======
-        <Text style={styles.sectionTitle}>✨ Popular Products</Text>
-
-        <View style={styles.grid}>
-          {filteredProducts.map((p) => (
-            <View key={String(p.id)} style={styles.gridItem}>
-              <ProductCard item={p} />
-            </View>
-          ))}
-        </View>
-
-        {filteredProducts.length === 0 && (
-          <View style={styles.empty}>
-            <Text style={styles.emptyText}>No products found</Text>
-          </View>
-        )}
-      </ScrollView>
-
-      <Modal visible={groupModalOpen} transparent animationType="slide" onRequestClose={() => setGroupModalOpen(false)}>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <Text style={styles.modalTitle}>Group</Text>
-              <Pressable onPress={() => setGroupModalOpen(false)}>
-                <Text style={{ fontSize: 18 }}>✕</Text>
-              </Pressable>
-            </View>
-
-            <Text style={styles.modalProduct}>{selectedProduct?.name ?? "—"}</Text>
-
-            {!selectedGroup?.id ? (
-              <Text style={{ color: "#64748b", marginTop: 10 }}>
-                No group exists for this product yet.
-              </Text>
-            ) : (
-              <>
-                <View style={styles.modalInfoRow}>
-                  <Text style={styles.modalInfoLabel}>Status</Text>
-                  <Text style={styles.modalInfoValue}>{modalStatus}</Text>
-                </View>
-
-                <View style={styles.modalInfoRow}>
-                  <Text style={styles.modalInfoLabel}>Members</Text>
-                  <Text style={styles.modalInfoValue}>
-                    {modalJoinedCount}/{modalMin || "—"}
-                  </Text>
-                </View>
-
-                <Pressable
-                  style={[
-                    styles.modalActionBtn,
-                    modalIsJoined && styles.modalLeaveBtn,
-                    modalBusy && { opacity: 0.6 },
-                  ]}
-                  disabled={modalBusy}
-                  onPress={() => selectedProductId && toggleJoinLeave(selectedProductId, true)}
-                >
-                  <Text style={styles.modalActionText}>
-                    {modalBusy ? "Please wait..." : modalIsJoined ? "LEAVE" : "JOIN"}
-                  </Text>
-                </Pressable>
-              </>
-            )}
-          </View>
-        </View>
-      </Modal>
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
+      {renderPaymentModal()}{" "}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
   container: {
     flex: 1,
     backgroundColor: "#f8fafc",
@@ -1674,55 +1417,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "700",
     color: "#fff",
-=======
-  container: { flex: 1, backgroundColor: "#f8fafc" },
-  center: { flex: 1, justifyContent: "center", alignItems: "center" },
-  loadingText: { marginTop: 12, color: "#64748b" },
-
-  header: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 12 },
-  logo: { fontSize: 26, fontWeight: "900", color: "#0f172a" },
-  tagline: { color: "#64748b", marginTop: 2 },
-
-  searchContainer: { paddingHorizontal: 16, marginBottom: 10 },
-  searchInput: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    color: "#0f172a",
-  },
-
-  chipsRow: { paddingHorizontal: 12, gap: 8, paddingBottom: 10 },
-  chip: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#e2e8f0",
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-  },
-  chipActive: { backgroundColor: "#2563eb", borderColor: "#2563eb" },
-  chipText: { color: "#334155", fontWeight: "800", fontSize: 12 },
-  chipTextActive: { color: "#fff" },
-
-  sectionTitle: { paddingHorizontal: 16, marginTop: 8, marginBottom: 10, fontSize: 16, fontWeight: "900", color: "#0f172a" },
-
-  grid: { paddingHorizontal: 12, flexDirection: "row", flexWrap: "wrap" },
-  gridItem: { width: "50%", paddingHorizontal: 6, paddingBottom: 12 },
-
-  card: { backgroundColor: "#fff", borderRadius: 14, overflow: "hidden", borderWidth: 1, borderColor: "#e2e8f0" },
-
-  imageWrap: {
-    width: "100%",
-    height: 90,
-    backgroundColor: "#f1f5f9",
-    borderBottomWidth: 1,
-    borderColor: "#e2e8f0",
-    justifyContent: "center",
-    alignItems: "center",
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
   },
   image: { width: "85%", height: "85%", resizeMode: "contain" } as ImageStyle,
 
@@ -1730,18 +1424,42 @@ const styles = StyleSheet.create({
   title: { fontSize: 13, fontWeight: "900", color: "#0f172a" },
   meta: { color: "#64748b", fontSize: 11 },
 
-  priceRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  priceRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   price: { color: "#059669", fontWeight: "900", fontSize: 13 },
   groupPrice: { color: "#0f172a", fontWeight: "800", fontSize: 11 },
 
-  groupBox: { backgroundColor: "#dbeafe", borderRadius: 10, paddingVertical: 8, paddingHorizontal: 8, gap: 6 },
+  groupBox: {
+    backgroundColor: "#dbeafe",
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+    gap: 6,
+  },
   groupText: { color: "#1e40af", fontWeight: "900", fontSize: 11 },
 
-  joinLeaveBtn: { backgroundColor: "#0f172a", borderRadius: 10, paddingVertical: 7, alignItems: "center" },
+  joinLeaveBtn: {
+    backgroundColor: "#0f172a",
+    borderRadius: 10,
+    paddingVertical: 7,
+    alignItems: "center",
+  },
   joinLeaveText: { color: "#fff", fontWeight: "900", fontSize: 11 },
 
-  actionsRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  openBtn: { backgroundColor: "#2563eb", paddingVertical: 9, paddingHorizontal: 12, borderRadius: 12 },
+  actionsRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  openBtn: {
+    backgroundColor: "#2563eb",
+    paddingVertical: 9,
+    paddingHorizontal: 12,
+    borderRadius: 12,
+  },
   openBtnText: { color: "#fff", fontWeight: "900", fontSize: 12 },
   heartBtn: { padding: 6 },
   heart: { fontSize: 18 },
@@ -1749,19 +1467,38 @@ const styles = StyleSheet.create({
   empty: { padding: 40, alignItems: "center" },
   emptyText: { color: "#64748b" },
 
-  modalOverlay: { flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "flex-end" },
-  modalCard: { backgroundColor: "#fff", padding: 16, borderTopLeftRadius: 18, borderTopRightRadius: 18, gap: 10 },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "flex-end",
+  },
+  modalCard: {
+    backgroundColor: "#fff",
+    padding: 16,
+    borderTopLeftRadius: 18,
+    borderTopRightRadius: 18,
+    gap: 10,
+  },
 
   modalTitle: { fontSize: 18, fontWeight: "900", color: "#0f172a" },
   modalProduct: { fontSize: 14, fontWeight: "800", color: "#334155" },
 
   // ✅ FIXED: no typo in justifyContent
-  modalInfoRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  modalInfoRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
   modalInfoLabel: { color: "#64748b", fontWeight: "700" },
   modalInfoValue: { color: "#0f172a", fontWeight: "900" },
 
-  modalActionBtn: { backgroundColor: "#2563eb", borderRadius: 12, paddingVertical: 12, alignItems: "center", marginTop: 6 },
+  modalActionBtn: {
+    backgroundColor: "#2563eb",
+    borderRadius: 12,
+    paddingVertical: 12,
+    alignItems: "center",
+    marginTop: 6,
+  },
   modalLeaveBtn: { backgroundColor: "#ef4444" },
   modalActionText: { color: "#fff", fontWeight: "900" },
 });
-

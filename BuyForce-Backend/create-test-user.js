@@ -23,13 +23,13 @@ async function createTestUser() {
       [hashedPassword, 'test@buyforce.com']
     );
     
-    console.log('✅ Test user password updated!');
-    console.log('📧 Email: test@buyforce.com');
-    console.log('🔑 Password: 123456');
+    console.log(' Test user password updated!');
+    console.log(' Email: test@buyforce.com');
+    console.log(' Password: 123456');
     console.log('User data:', result.rows[0]);
     
   } catch (error) {
-    console.error('❌ Error updating test user:', error);
+    console.error(' Error updating test user:', error);
   } finally {
     await pool.end();
   }

@@ -13,15 +13,15 @@ const STATUS = {
 
 type Status = (typeof STATUS)[keyof typeof STATUS];
 
-async function recomputeGroup(groupId: string) {
-  const gRes = await pool.query(`SELECT id, "minParticipants", status FROM groups WHERE id=$1`, [groupId]);
+async function recomputeGroup(groupId: number) {
+  const gRes = await pool.query(`SELECT id, min_participants, status FROM groups WHERE id=$1`, [groupId]);
   if ((gRes.rowCount ?? 0) === 0) throw new Error("Group not found");
 
-  const g = gRes.rows[0] as { id: string; minParticipants: number; status: Status };
+  const g = gRes.rows[0] as { id: number; min_participants: number; status: Status };
 
   const cRes = await pool.query(`SELECT COUNT(*)::int AS cnt FROM group_members WHERE group_id=$1`, [groupId]);
   const cnt = Number(cRes.rows[0]?.cnt ?? 0);
-  const min = Number(g.minParticipants ?? 0);
+  const min = Number(g.min_participants ?? 0);
 
   const nextStatus: Status =
     g.status === STATUS.CHARGED ? STATUS.CHARGED : cnt >= min ? STATUS.LOCKED : STATUS.OPEN;
@@ -31,7 +31,7 @@ async function recomputeGroup(groupId: string) {
   await pool.query(
     `
     UPDATE groups
-    SET "joinedCount"=$2, progress=$3, status=$4
+    SET joined_count=$2, progress=$3, status=$4
     WHERE id=$1
     `,
     [groupId, cnt, progress, nextStatus]
@@ -46,7 +46,7 @@ async function recomputeGroup(groupId: string) {
 router.get("/", async (_req, res) => {
   try {
     const result = await pool.query(
-      `SELECT * FROM groups ORDER BY "createdAt" DESC NULLS LAST, id DESC LIMIT 50`
+      `SELECT * FROM groups ORDER BY created_at DESC NULLS LAST, id DESC LIMIT 50`
     );
     return res.json({ items: result.rows });
   } catch (e: any) {
@@ -72,7 +72,7 @@ router.get("/my", authMiddleware, async (req, res) => {
       INNER JOIN group_members gm ON gm.group_id = g.id
       LEFT JOIN products p ON p.id = g."productId"
       WHERE gm.user_id = $1
-      ORDER BY g."createdAt" DESC NULLS LAST
+      ORDER BY g.created_at DESC NULLS LAST
       `,
       [userId]
     );
@@ -88,7 +88,7 @@ router.get("/my", authMiddleware, async (req, res) => {
  * returns item + isJoined + canPay
  */
 router.get("/:id", authMiddleware, async (req, res) => {
-  const groupId = req.params.id;
+  const groupId = parseInt(req.params.id, 10);
   const userId = (req as AuthRequest).user!.id;
 
   try {
@@ -111,8 +111,8 @@ router.get("/:id", authMiddleware, async (req, res) => {
     if (result.rows.length === 0) return res.status(404).json({ error: "Group not found" });
 
     const row: any = result.rows[0];
-    const joinedCount = Number(row.joinedCount ?? 0);
-    const min = Number(row.minParticipants ?? 0);
+    const joinedCount = Number(row.joined_count ?? 0);
+    const min = Number(row.min_participants ?? 0);
     const status = row.status as Status;
 
     row.canPay = Boolean(row.isJoined) && status === STATUS.LOCKED && joinedCount >= min;
@@ -127,7 +127,7 @@ router.get("/:id", authMiddleware, async (req, res) => {
  * POST /v1/groups/:id/join
  */
 router.post("/:id/join", authMiddleware, async (req, res) => {
-  const groupId = req.params.id;
+  const groupId = parseInt(req.params.id, 10);
   const userId = (req as AuthRequest).user!.id;
 
   const client = await pool.connect();
@@ -180,7 +180,7 @@ router.post("/:id/join", authMiddleware, async (req, res) => {
  * cannot leave if LOCKED or CHARGED
  */
 router.delete("/:id/leave", authMiddleware, async (req, res) => {
-  const groupId = req.params.id;
+  const groupId = parseInt(req.params.id, 10);
   const userId = (req as AuthRequest).user!.id;
 
   const client = await pool.connect();

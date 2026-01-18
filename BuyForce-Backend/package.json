@@ -19,6 +19,7 @@
     "@types/passport-jwt": "^4.0.1",
     "@types/paypal__checkout-server-sdk": "^1.0.8",
     "@types/pg": "^8.16.0",
+    "@types/react": "~19.1.10",
     "@types/uuid": "^10.0.0",
     "nodemon": "^3.1.11",
     "reflect-metadata": "^0.2.2",

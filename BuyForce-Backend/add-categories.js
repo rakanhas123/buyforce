@@ -10,7 +10,7 @@ const pool = new Pool({
 
 async function addCategories() {
   try {
-    console.log('🏷️  Adding categories...\n');
+    console.log('  Adding categories...\n');
     
     // Add more categories
     const categories = [
@@ -26,10 +26,10 @@ async function addCategories() {
         `INSERT INTO categories (id, name) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET name = $2`,
         [cat.id, cat.name]
       );
-      console.log(`✅ Added: ${cat.name}`);
+      console.log(` Added: ${cat.name}`);
     }
     
-    console.log('\n📊 Updating product categories...\n');
+    console.log('\n Updating product categories...\n');
     
     // Update products to have correct categories
     const updates = [
@@ -58,14 +58,14 @@ async function addCategories() {
           [category, id]
         );
       }
-      console.log(`✅ Updated ${ids.length} products for category ${category}`);
+      console.log(` Updated ${ids.length} products for category ${category}`);
     }
     
-    console.log('\n✅ All categories and products updated!');
+    console.log('\n All categories and products updated!');
     
     await pool.end();
   } catch (err) {
-    console.error('❌ Error:', err);
+    console.error(' Error:', err);
     process.exit(1);
   }
 }

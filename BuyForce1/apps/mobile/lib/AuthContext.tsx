@@ -30,7 +30,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(t);
     setUser(u);
 
-    // ✅ store token where api.ts can read it per-request
+    //  store token where api.ts can read it per-request
     await saveToken(t);
 
     // (optional) keep these keys too since your app already uses them

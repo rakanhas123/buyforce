@@ -118,6 +118,11 @@ export interface Group {
   name: string;
   status: string;
   created_at: string;
+  productId?: number;
+  min_participants: number;
+  joined_count: number;
+  progress: number;
+  ends_at: string;
 }
 
 export interface Category {
@@ -155,7 +160,8 @@ export const authApi = {
       return data;
     } catch (error: any) {
       console.error(' Login API error:', error.response?.data || error.message);
-      throw error;
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Login failed';
+      throw new Error(errorMessage);
     }
   },
 
@@ -171,7 +177,8 @@ export const authApi = {
       return data;
     } catch (error: any) {
       console.error(' Register API error:', error.response?.data || error.message);
-      throw error;
+      const errorMessage = error.response?.data?.error || error.response?.data?.message || error.message || 'Registration failed';
+      throw new Error(errorMessage);
     }
   },
 
@@ -195,8 +202,13 @@ export const productsApi = {
     return data.items || data;
   },
 
-  getById: async (id: number): Promise<Product> => {
+  getById: async (id: number | string): Promise<Product> => {
     const { data } = await api.get(`/api/products/${id}`);
+    return data;
+  },
+
+  getGroupForProduct: async (productId: number | string): Promise<any> => {
+    const { data } = await api.get(`/v1/products/${productId}/group`);
     return data;
   },
 };
@@ -208,13 +220,23 @@ export const groupsApi = {
     return data.items || data;
   },
 
-  getById: async (id: number): Promise<Group> => {
+  getById: async (id: number | string): Promise<Group> => {
     const { data } = await api.get(`/v1/groups/${id}`);
-    return data;
+    return data.item || data;
   },
 
-  join: async (groupId: number): Promise<void> => {
+  join: async (groupId: number | string): Promise<void> => {
     await api.post(`/v1/groups/${groupId}/join`);
+  },
+
+  create: async (groupData: {
+    name: string;
+    productId: number | string;
+    minParticipants: number;
+    endsAt: string;
+  }): Promise<{ id: number }> => {
+    const { data } = await api.post('/v1/groups', groupData);
+    return data;
   },
 };
 

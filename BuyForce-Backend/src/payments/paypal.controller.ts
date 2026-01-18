@@ -2,10 +2,15 @@ import { Request, Response } from "express";
 import PaymentsService from "./payments.service";
 
 const payments = new PaymentsService();
-type AuthRequest = Request & { user: { id: string } };
+
+interface AuthRequest extends Request {
+  user: {
+    id: string;
+  };
+}
 
 function requireAuth(req: Request, res: Response): req is AuthRequest {
-  if (!("user" in req) || !req.user?.id) {
+  if (!("user" in req) || !req.user || !("id" in req.user)) {
     res.status(401).json({ message: "Unauthorized" });
     return false;
   }
@@ -22,8 +27,7 @@ function toNumber(value: unknown): number | null {
 }
 
 export async function createPayPalOrder(req: Request, res: Response) {
-  const auth = requireAuth(req, res);
-  if (!auth) return;
+  if (!requireAuth(req, res)) return;
 
   const { groupId, amount } = req.body ?? {};
 
@@ -37,7 +41,7 @@ export async function createPayPalOrder(req: Request, res: Response) {
   }
 
   try {
-    const order = await payments.createPayPalOrder(auth.userId, groupId, amountNum);
+    const order = await payments.createPayPalOrder(req.user.id, groupId, amountNum);
     return res.json({ orderId: order.id });
   } catch (err: any) {
     console.error("[createPayPalOrder]", err);
@@ -46,8 +50,7 @@ export async function createPayPalOrder(req: Request, res: Response) {
 }
 
 export async function capturePayPalOrder(req: Request, res: Response) {
-  const auth = requireAuth(req, res);
-  if (!auth) return;
+  if (!requireAuth(req, res)) return;
 
   const { groupId, orderId, amount } = req.body ?? {};
 
@@ -64,7 +67,7 @@ export async function capturePayPalOrder(req: Request, res: Response) {
   }
 
   try {
-    await payments.capturePayPalOrder(auth.userId, groupId, orderId, amountNum);
+    await payments.capturePayPalOrder(req.user.id, groupId, orderId, amountNum);
     return res.json({ success: true });
   } catch (err: any) {
     console.error("[capturePayPalOrder]", err);

@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   RefreshControl,
 } from "react-native";
-<<<<<<< HEAD
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState, useEffect } from "react";
 import { Ionicons } from "@expo/vector-icons";
@@ -52,97 +51,6 @@ export default function GroupsScreen() {
       router.replace("/tabs/home");
     }
   };
-
-=======
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { Ionicons } from "@expo/vector-icons";
-import { groupsApi, Group } from "../../lib/api";
-import { useFocusEffect } from "expo-router";
-import { useCallback } from "react";
-export default function GroupsScreen() {
-  const router = useRouter();
-  const [groups, setGroups] = useState<Group[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  
-useFocusEffect(
-  useCallback(() => {
-    loadGroups();
-  }, [])
-);
-
-const loadGroups = async () => {
-  try {
-    setLoading(true);
-
-    const data = await groupsApi.getAll();
-
-    // ✅ supports both: array OR { items: [...] }
-    const items = Array.isArray(data) ? data : (data as any)?.items ?? [];
-
-    setGroups(items);
-  } catch (error) {
-    console.error("Failed to load groups:", error);
-    setGroups([]);
-  } finally {
-    setLoading(false);
-    setRefreshing(false);
-  }
-};
-
-
-  const onRefresh = () => {
-    setRefreshing(true);
-    loadGroups();
-  };
-
-  const handleBack = () => {
-    if (router.canGoBack()) router.back();
-    else router.replace("/tabs/home");
-  };
-
-  const statusLabel = (s?: string) => {
-    switch (s) {
-      case "OPEN":
-        return "Open";
-      case "LOCKED":
-        return "Locked";
-      case "CHARGED":
-        return "Charged";
-      case "FAILED":
-        return "Failed";
-      case "COMPLETED":
-        return "Completed";
-      default:
-        return s ?? "—";
-    }
-  };
-
-  const statusColor = (s?: string) => {
-    switch (s) {
-      case "OPEN":
-        return "#10b981"; // green
-      case "LOCKED":
-        return "#f59e0b"; // amber
-      case "CHARGED":
-      case "COMPLETED":
-        return "#3b82f6"; // blue
-      case "FAILED":
-        return "#ef4444"; // red
-      default:
-        return "#6b7280"; // gray
-    }
-  };
-
-  const formatDate = (iso?: string | null) => {
-    if (!iso) return "—";
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return "—";
-    return d.toLocaleDateString("en-US");
-  };
-
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
   if (loading) {
     return (
       <View style={[styles.container, styles.centered]}>
@@ -163,16 +71,10 @@ const loadGroups = async () => {
 
       <FlatList
         data={groups}
-<<<<<<< HEAD
-        keyExtractor={(item) => item.id.toString()}
-=======
-        keyExtractor={(item) => String(item.id)}
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
-        numColumns={2}
+        keyExtractor={(item) => item.id.toString()}        numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
         contentContainerStyle={{ gap: 12, paddingBottom: 80 }}
         refreshControl={
-<<<<<<< HEAD
           <RefreshControl 
             refreshing={refreshing} 
             onRefresh={onRefresh}
@@ -181,10 +83,10 @@ const loadGroups = async () => {
         }
         renderItem={({ item }) => {
           const statusColors = {
-            active: "#10b981",
-            pending: "#f59e0b",
-            completed: "#3b82f6",
-            cancelled: "#ef4444",
+            OPEN: "#10b981",
+            LOCKED: "#f59e0b",
+            CHARGED: "#3b82f6",
+            FAILED: "#ef4444",
           };
           const statusColor = statusColors[item.status as keyof typeof statusColors] || "#6b7280";
 
@@ -195,49 +97,30 @@ const loadGroups = async () => {
             >
               <View style={[styles.statusBadge, { backgroundColor: statusColor }]}>
                 <Text style={styles.statusText}>
-                  {item.status === "active"
-                    ? "Active"
-                    : item.status === "pending"
-                    ? "Pending"
-                    : item.status === "completed"
-                    ? "Completed"
-                    : "Cancelled"}
+                  {item.status === "OPEN"
+                    ? "Open"
+                    : item.status === "LOCKED"
+                    ? "Locked"
+                    : item.status === "CHARGED"
+                    ? "Charged"
+                    : item.status === "FAILED"
+                    ? "Failed"
+                    : item.status}
                 </Text>
               </View>
 
               <Text style={styles.cardTitle} numberOfLines={2}>{item.name}</Text>
               
-              <Text style={styles.date}>
-                Created: {new Date(item.created_at).toLocaleDateString('en-US')}
-=======
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
-        }
-        renderItem={({ item }) => {
-          const joined = Number(item.joinedCount ?? 0);
-          const min = Number(item.minParticipants ?? 0);
-
-          // createdAt can be returned as createdAt or created_at depending on backend
-          const createdIso =
-            (item as any).createdAt ??
-            (item as any).created_at ??
-            null;
-
-          return (
-            <Pressable style={styles.card} onPress={() => router.push(`/group/${item.id}`)}>
-              <View style={[styles.statusBadge, { backgroundColor: statusColor(item.status) }]}>
-                <Text style={styles.statusText}>{statusLabel(item.status)}</Text>
+              <View style={styles.progressContainer}>
+                <Text style={styles.progressText}>
+                  {item.joined_count}/{item.min_participants} members
+                </Text>
+                <Text style={styles.progressPercent}>{item.progress}%</Text>
               </View>
 
-              <Text style={styles.cardTitle} numberOfLines={2}>
-                {item.name}
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
+              <Text style={styles.date}>
+                Ends: {new Date(item.ends_at).toLocaleDateString('en-US')}
               </Text>
-
-              <Text style={styles.members}>
-                Members: {joined}/{min || "—"}
-              </Text>
-
-              <Text style={styles.date}>Created: {formatDate(createdIso)}</Text>
             </Pressable>
           );
         }}
@@ -308,21 +191,18 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "600",
   },
-<<<<<<< HEAD
-  date: {
-    color: "#6b7280",
-    fontSize: 12,
-  },
-  empty: {
-    flex: 1,
-    justifyContent: "center",
+  progressContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
     alignItems: "center",
-    padding: 40,
   },
-=======
-  members: {
-    color: "#cbd5e1",
-    fontSize: 12,
+  progressText: {
+    color: "#9a9a9a",
+    fontSize: 13,
+  },
+  progressPercent: {
+    color: "#10b981",
+    fontSize: 13,
     fontWeight: "600",
   },
   date: {
@@ -334,9 +214,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: 40,
-  },
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
-  emptyText: {
+  },  emptyText: {
     color: "#9a9a9a",
     fontSize: 16,
   },

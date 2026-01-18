@@ -1,92 +1,74 @@
-<<<<<<< HEAD
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
-type AdminAuthState = {
+type AdminAuthValue = {
   token: string | null;
+  isAuthenticated: boolean;
   setToken: (t: string | null) => void;
   login: (t: string) => void;
   logout: () => void;
 };
 
-const AdminAuthContext = createContext<AdminAuthState | null>(null);
+const AdminAuthContext = createContext<AdminAuthValue | null>(null);
+
+const STORAGE_KEY = "admin_token";
 
 export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setTokenState] = useState<string | null>(null);
 
-  // load once
+  // ✅ Load token once (Web only)
   useEffect(() => {
-    const t = localStorage.getItem("admin_token");
-    if (t && typeof t === "string") setTokenState(t);
+    try {
+      const t = localStorage.getItem(STORAGE_KEY);
+      if (t && typeof t === "string" && t.trim()) {
+        setTokenState(t);
+      }
+    } catch {
+      // localStorage not available (for example: native)
+    }
   }, []);
 
-  function setToken(t: string | null) {
+  const setToken = (t: string | null) => {
     setTokenState(t);
-    if (t) localStorage.setItem("admin_token", t); // ✅ raw string (no JSON.stringify)
-    else localStorage.removeItem("admin_token");
-  }
 
-  function login(t: string) {
-    setToken(t);
-  }
+    try {
+      if (t && t.trim()) {
+        localStorage.setItem(STORAGE_KEY, t);
+      } else {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+    } catch {
+      // localStorage not available
+    }
+  };
 
-  function logout() {
-    setToken(null);
-  }
-
-  const value = useMemo(() => ({ token, setToken, login, logout }), [token]);
-=======
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
-
-type AdminAuthValue = {
-  adminKey: string | null;
-  isAuthenticated: boolean;
-  login: (adminKey: string) => void;
-  logout: () => void;
-};
-
-const AdminAuthContext = createContext<AdminAuthValue | null>(null);
-
-const KEY = "ADMIN_KEY";
-
-export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
-  const [adminKey, setAdminKey] = useState<string | null>(null);
-
-  useEffect(() => {
-    const saved = localStorage.getItem(KEY);
-    if (saved && saved.trim()) setAdminKey(saved);
-  }, []);
-
-  const login = (key: string) => {
-    const k = String(key || "").trim();
-    localStorage.setItem(KEY, k);
-    setAdminKey(k);
+  const login = (t: string) => {
+    setToken(String(t || "").trim());
   };
 
   const logout = () => {
-    localStorage.removeItem(KEY);
-    setAdminKey(null);
+    setToken(null);
   };
 
   const value = useMemo(
     () => ({
-      adminKey,
-      isAuthenticated: !!adminKey,
+      token,
+      isAuthenticated: !!token,
+      setToken,
       login,
       logout,
     }),
-    [adminKey]
+    [token]
   );
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
 
   return <AdminAuthContext.Provider value={value}>{children}</AdminAuthContext.Provider>;
 }
 
 export function useAdminAuth() {
   const ctx = useContext(AdminAuthContext);
-<<<<<<< HEAD
-  if (!ctx) throw new Error("useAdminAuth must be used inside AdminAuthProvider");
-=======
-  if (!ctx) throw new Error("useAdminAuth must be used within AdminAuthProvider");
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
+
+  if (!ctx) {
+    throw new Error("useAdminAuth must be used inside AdminAuthProvider");
+  }
+
   return ctx;
 }

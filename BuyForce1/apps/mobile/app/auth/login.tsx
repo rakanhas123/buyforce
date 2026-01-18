@@ -1,11 +1,7 @@
 import { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
-<<<<<<< HEAD
-import { useAuth } from "../lib/AuthContext";
-=======
 import { useAuth } from "../../lib/AuthContext";
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
 
 export default function LoginPage() {
   const router = useRouter();
@@ -18,16 +14,16 @@ export default function LoginPage() {
   // Auto-navigate when authentication succeeds
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
-      console.log('✅ Login successful, navigating to home...');
+      console.log(' Login successful, navigating to home...');
       router.replace("/tabs/home");
     }
   }, [isAuthenticated, isLoading]);
 
   const handleSubmit = async () => {
-    console.log('📝 Login form data:', { email, password: '***' });
+    console.log(' Login form data:', { email, password: '***' });
     
     if (!email || !password) {
-      console.log('❌ Validation failed:', { email, password });
+      console.log(' Validation failed:', { email, password });
       Alert.alert("Error", "Please fill all fields");
       return;
     }
@@ -40,7 +36,7 @@ export default function LoginPage() {
       Alert.alert("Success", "Logged in successfully!");
       // Don't manually navigate - index.tsx will handle routing based on auth state
     } catch (err: any) {
-      console.error('❌ Login error:', err);
+      console.error(' Login error:', err);
       const errorMessage = err?.response?.data?.error || err?.response?.data?.message || err?.message || "Login failed";
       Alert.alert("Login Failed", errorMessage);
     } finally {
@@ -59,7 +55,7 @@ export default function LoginPage() {
             style={styles.input}
             value={email}
             onChangeText={(text) => {
-              console.log('✍️ Email changed:', text);
+              console.log(' Email changed:', text);
               setEmail(text);
             }}
             placeholder="you@email.com"
@@ -75,7 +71,7 @@ export default function LoginPage() {
             style={styles.input}
             value={password}
             onChangeText={(text) => {
-              console.log('✍️ Password changed');
+              console.log('Password changed');
               setPassword(text);
             }}
             placeholder="••••••••"

@@ -7,7 +7,7 @@ const router = Router();
 
 type Role = "USER" | "ADMIN";
 
-function signToken(payload: { id: string; email: string; role: Role }) {
+function signToken(payload: { id: string | number; email: string; role: Role }) {
   const secret = process.env.JWT_SECRET;
   if (!secret) throw new Error("JWT_SECRET missing in .env");
 
@@ -15,7 +15,7 @@ function signToken(payload: { id: string; email: string; role: Role }) {
   return jwt.sign(
     { email: payload.email, role: payload.role }, // payload
     secret,
-    { expiresIn: "7d", subject: payload.id }
+    { expiresIn: "7d", subject: String(payload.id) }
   );
 }
 
@@ -45,20 +45,19 @@ router.post("/register", async (req, res) => {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // role defaults to USER in DB (recommended)
     const created = await pool.query(
       `
-      INSERT INTO users ("fullName", email, password_hash)
+      INSERT INTO users (full_name, email, password)
       VALUES ($1,$2,$3)
-      RETURNING id, "fullName", email, role
+      RETURNING id, full_name, email
       `,
       [fullName, normalizedEmail, passwordHash]
     );
 
-    const user = created.rows[0] as { id: string; fullName: string; email: string; role: Role };
-    const accessToken = signToken({ id: user.id, email: user.email, role: user.role });
+    const user = created.rows[0] as { id: number; full_name: string; email: string };
+    const accessToken = signToken({ id: user.id, email: user.email, role: "USER" });
 
-    return res.json({ user, accessToken });
+    return res.json({ user: { id: user.id, fullName: user.full_name, email: user.email }, accessToken });
   } catch (e: any) {
     return res.status(500).json({ error: e?.message ?? "Register failed" });
   }
@@ -79,7 +78,7 @@ router.post("/login", async (req, res) => {
     const normalizedEmail = email.toLowerCase().trim();
 
     const result = await pool.query(
-      `SELECT id, "fullName", email, role, password_hash FROM users WHERE email=$1`,
+      `SELECT id, full_name, email, password FROM users WHERE email=$1`,
       [normalizedEmail]
     );
 
@@ -88,18 +87,17 @@ router.post("/login", async (req, res) => {
     }
 
     const row = result.rows[0] as {
-      id: string;
-      fullName: string;
+      id: number;
+      full_name: string;
       email: string;
-      role: Role;
-      password_hash: string;
+      password: string;
     };
 
-    const ok = await bcrypt.compare(password, row.password_hash);
+    const ok = await bcrypt.compare(password, row.password);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-    const user = { id: row.id, fullName: row.fullName, email: row.email, role: row.role };
-    const accessToken = signToken({ id: row.id, email: row.email, role: row.role });
+    const user = { id: row.id, fullName: row.full_name, email: row.email };
+    const accessToken = signToken({ id: row.id, email: row.email, role: "USER" });
 
     return res.json({ user, accessToken });
   } catch (e: any) {

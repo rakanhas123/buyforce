@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator, RefreshControl, Image } from "react-native";
 import { useRouter } from "expo-router";
 import { useState, useEffect } from "react";
@@ -26,38 +25,7 @@ const CATEGORY_ICONS: { [key: string]: string } = {
   "Accessories": "",
   "Smart Home": "",
   "Wearables": "",
-  "Audio": "",
-=======
-import { View, Text, FlatList, Pressable, StyleSheet, ActivityIndicator, RefreshControl } from "react-native";
-import { useRouter } from "expo-router";
-import { useState, useEffect } from "react";
-import { categoriesApi, Category } from "../../lib/api";
-
-const CATEGORY_ICONS: { [key: string]: string } = {
-  // Hebrew names
-  "סמארטפונים": "📱",
-  "מחשבים ניידים": "💻",
-  "אביזרי אודיו": "🎧",
-  "קונסולות משחק": "🎮",
-  "מצלמות": "📷",
-  "אביזרי מחשב": "⌨️",
-  "מוצרי חשמל": "⚡",
-  "אביזרי Apple": "🍎",
-  "טכנולוגיה לבית חכם": "🏠",
-  "ספורט וכושר": "⚽",
-  // English names (from database)
-  "Phones": "📱",
-  "Laptops": "💻",
-  "Headphones": "🎧",
-  "Tablets": "📱",
-  "Cameras": "📷",
-  "Gaming": "🎮",
-  "Accessories": "⌨️",
-  "Smart Home": "🏠",
-  "Wearables": "⌚",
-  "Audio": "🔊",
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
-};
+  "Audio": "",};
 
 export default function CategoriesScreen() {
   const router = useRouter();
@@ -132,7 +100,6 @@ export default function CategoriesScreen() {
               })
             }
           >
-<<<<<<< HEAD
             {item.image_url ? (
               <Image 
                 source={{ uri: item.image_url }} 
@@ -141,11 +108,7 @@ export default function CategoriesScreen() {
               />
             ) : (
               <Text style={styles.icon}>{getIcon(item.name)}</Text>
-            )}
-=======
-            <Text style={styles.icon}>{getIcon(item.name)}</Text>
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
-            <Text style={styles.cardTitle}>{item.name}</Text>
+            )}            <Text style={styles.cardTitle}>{item.name}</Text>
 
             <View style={styles.selectBadge}>
               <Text style={styles.selectText}>Select</Text>
@@ -210,26 +173,18 @@ const styles = StyleSheet.create({
     gap: 12,
     borderWidth: 1,
     borderColor: "#1f1f2e",
-<<<<<<< HEAD
-    overflow: "hidden",
-=======
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
-  },
+    overflow: "hidden",  },
 
   cardPressed: {
     transform: [{ scale: 0.97 }],
     opacity: 0.9,
   },
 
-<<<<<<< HEAD
   categoryImage: {
     width: 80,
     height: 80,
     borderRadius: 12,
   },
-
-=======
->>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
   icon: {
     fontSize: 36,
   },
