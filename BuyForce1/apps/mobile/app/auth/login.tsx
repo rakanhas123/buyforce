@@ -1,7 +1,11 @@
 import { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView, Alert } from "react-native";
 import { useRouter } from "expo-router";
+<<<<<<< HEAD
 import { useAuth } from "../lib/AuthContext";
+=======
+import { useAuth } from "../../lib/AuthContext";
+>>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
 
 export default function LoginPage() {
   const router = useRouter();

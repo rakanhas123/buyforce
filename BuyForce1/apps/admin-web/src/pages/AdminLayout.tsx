@@ -6,11 +6,16 @@ function Nav({ to, label }: { to: string; label: string }) {
   const active = pathname === to || pathname.startsWith(to + "/");
 
   return (
+<<<<<<< HEAD
     <Link to={to} style={{ textDecoration: "none" }}>
       <button
         type="button"
         className={`btn ${active ? "" : "secondary"}`}
       >
+=======
+    <Link to={to}>
+      <button type="button" className={`btn ${active ? "" : "secondary"}`}>
+>>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
         {label}
       </button>
     </Link>
@@ -27,7 +32,10 @@ export default function AdminLayout() {
   }
 
   function onRefresh() {
+<<<<<<< HEAD
     // refresh current page data by reloading the route (hard refresh)
+=======
+>>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
     window.location.reload();
   }
 
@@ -38,6 +46,7 @@ export default function AdminLayout() {
           <div className="brand" style={{ display: "flex", alignItems: "center", gap: 12 }}>
             <div className="badge">A</div>
             <div style={{ fontWeight: 900 }}>Admin</div>
+<<<<<<< HEAD
 
             <div className="nav" style={{ marginLeft: 12, display: "flex", gap: 10, flexWrap: "wrap" }}>
               <Nav to="/admin/dashboard" label="Dashboard" />
@@ -51,6 +60,21 @@ export default function AdminLayout() {
           </div>
 
           <div style={{ display: "flex", gap: 10 }}>
+=======
+          </div>
+
+          <div className="nav">
+            <Nav to="/admin/dashboard" label="Dashboard" />
+            <Nav to="/admin/products" label="Products" />
+            <Nav to="/admin/categories" label="Categories" />
+            <Nav to="/admin/notifications" label="Notifications" />
+            <Nav to="/admin/users" label="Users" />
+            <Nav to="/admin/groups" label="Groups" />
+            <Nav to="/admin/wishlist" label="Wishlist" />
+          </div>
+
+          <div className="row">
+>>>>>>> 80a7a01eea5db8b4b711d140ba83600cce5b5fc1
             <button type="button" className="btn secondary" onClick={onRefresh}>
               Refresh
             </button>
