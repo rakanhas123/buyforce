@@ -1,299 +1,164 @@
+import { useEffect, useMemo, useState } from "react";
 import {
+  SafeAreaView,
   View,
   Text,
   StyleSheet,
   Image,
   Pressable,
-  Modal,
+  ScrollView,
+  ActivityIndicator,
 } from "react-native";
-import {
-  useLocalSearchParams,
-  useRouter,
-} from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import { productsApi, Product, groupsApi } from "../../lib/api";
 
-/* =========================
-   🔹 טיפוס מוצר
-   ========================= */
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  imageUrl: string;
-  currentMembers: number;
-  goalMembers: number;
-};
-
-/* =========================
-   🔹 דאטה
-   ========================= */
-const PRODUCTS: Product[] = [
-  {
-    id: 1,
-    name: "Apple AirPods Pro",
-    price: 899,
-    imageUrl:
-      "https://store.storeimages.cdn-apple.com/4668/as-images.apple.com/is/MWP22_AV1",
-    currentMembers: 62,
-    goalMembers: 100,
-  },
-  {
-    id: 2,
-    name: "Gaming Laptop",
-    price: 4999,
-    imageUrl:
-      "https://cdn.pixabay.com/photo/2017/01/22/19/12/laptop-2001346_1280.jpg",
-    currentMembers: 91,
-    goalMembers: 100,
-  },
-  {
-    id: 3,
-    name: "Running Shoes",
-    price: 349,
-    imageUrl:
-      "https://cdn.pixabay.com/photo/2017/08/06/06/42/running-shoes-2581824_1280.jpg",
-    currentMembers: 12,
-    goalMembers: 50,
-  },
-  {
-    id: 4,
-    name: "Luxury Perfume",
-    price: 249,
-    imageUrl:
-      "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=1200&q=80",
-    currentMembers: 18,
-    goalMembers: 100,
-  },
-];
-
-/* =========================
-   🔹 Product → Group mapping
-   ========================= */
-const PRODUCT_TO_GROUP: Record<number, string> = {
-  1: "g1",
-  2: "g2",
-  3: "g3",
-  4: "g4",
-};
-
-export default function ProductScreen() {
+export default function ProductIdScreen() {
   const router = useRouter();
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const params = useLocalSearchParams<{ id?: string | string[] }>();
 
-  const numericId = Number(id?.replace("p", ""));
-  const product = PRODUCTS.find((p) => p.id === numericId);
+  const productId = useMemo(() => {
+    const raw = params?.id;
+    if (!raw) return "";
+    return Array.isArray(raw) ? String(raw[0]) : String(raw);
+  }, [params?.id]);
 
-  const [showPayment, setShowPayment] = useState(false);
-  const [joined, setJoined] = useState(false);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [group, setGroup] = useState<any>(null);
 
-  if (!product || Number.isNaN(numericId)) {
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!productId) return;
+
+    (async () => {
+      try {
+        setLoading(true);
+        setError("");
+
+        const p = await productsApi.getById(productId);
+        setProduct(p);
+
+        // Optional: only if your backend has /groups/by-product/:productId
+        try {
+          const g = await productsApi.getGroupForProduct(productId);
+          setGroup(g);
+        } catch {
+          setGroup(null);
+        }
+      } catch (e: any) {
+        setError(e?.message ?? "Failed to load product");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [productId]);
+
+  const createGroup = async () => {
+    if (!product) return;
+    try {
+      setCreating(true);
+      setError("");
+
+      // simple defaults (later you can add a modal)
+      const minParticipants = 3;
+      const endsAt = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+
+      const created = await groupsApi.create({
+        name: `Group for ${product.name}`,
+        productId,
+        minParticipants,
+        endsAt,
+      });
+
+      router.push(`/group/${created.id}`);
+    } catch (e: any) {
+      setError(e?.message ?? "Failed to create group");
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  if (loading) {
     return (
-      <View style={styles.container}>
-        <Text style={styles.error}>Product not found</Text>
-      </View>
+      <SafeAreaView style={[styles.container, styles.center]}>
+        <ActivityIndicator />
+        <Text style={styles.muted}>Loading…</Text>
+      </SafeAreaView>
     );
   }
 
-  const progress = Math.round(
-    (product.currentMembers / product.goalMembers) * 100
-  );
+  if (error || !product) {
+    return (
+      <SafeAreaView style={[styles.container, styles.center]}>
+        <Text style={styles.err}>{error || "Not found"}</Text>
+        <Pressable style={styles.btn} onPress={() => router.back()}>
+          <Text style={styles.btnText}>Back</Text>
+        </Pressable>
+      </SafeAreaView>
+    );
+  }
 
-  const handlePayAndJoin = () => {
-    // 🔜 כאן בעתיד: Backend / Stripe
-    console.log("Paid 1₪ for group:", PRODUCT_TO_GROUP[product.id]);
-
-    setJoined(true);
-    setShowPayment(false);
-
-    router.push({
-      pathname: "/groups",
-      params: {
-        groupId: PRODUCT_TO_GROUP[product.id],
-        productId: product.id.toString(),
-      },
-    });
-  };
+  const mainImage = product.imageUrl?.trim() || "https://picsum.photos/seed/buyforce/800/800";
 
   return (
-    <View style={styles.container}>
-      {/* 🖼️ תמונת מוצר */}
-      <Image
-        source={{ uri: product.imageUrl }}
-        style={styles.image}
-        resizeMode="cover"
-      />
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={{ paddingBottom: 28 }}>
+        <Image source={{ uri: mainImage }} style={styles.image} />
 
-      {/* 🏷️ שם */}
-      <Text style={styles.title}>{product.name}</Text>
+        <View style={{ padding: 16 }}>
+          <Text style={styles.title}>{product.name}</Text>
+          <Text style={styles.muted}>{product.category?.name ?? "No category"}</Text>
 
-      {/* 💰 מחיר */}
-      <Text style={styles.price}>₪{product.price}</Text>
+          <View style={{ height: 10 }} />
 
-      {/* 📊 Progress */}
-      <View style={styles.progressBar}>
-        <View
-          style={[
-            styles.progressFill,
-            { width: `${progress}%` },
-          ]}
-        />
-      </View>
+          <Text style={styles.price}>₪{Number(product.priceRegular ?? 0).toFixed(0)}</Text>
+          <Text style={styles.muted}>Group: ₪{Number(product.priceGroup ?? 0).toFixed(0)}</Text>
 
-      <Text style={styles.meta}>
-        {product.currentMembers}/{product.goalMembers} מצטרפים ({progress}%)
-      </Text>
+          {product.description ? <Text style={styles.desc}>{product.description}</Text> : null}
 
-      {progress >= 80 && (
-        <Text style={styles.badge}>🔥 Almost there</Text>
-      )}
+          <View style={{ height: 16 }} />
 
-      {/* ✅ Join Group – עם תשלום */}
-      <Pressable
-        style={[
-          styles.joinButton,
-          joined && { backgroundColor: "#16a34a" },
-        ]}
-        onPress={() => setShowPayment(true)}
-        disabled={joined}
-      >
-        <Text style={styles.joinText}>
-          {joined ? "Joined ✓" : "Join Group – 1₪"}
-        </Text>
-      </Pressable>
+          {/* GROUP SECTION */}
+{group?.id ? (
+  <Pressable style={styles.btn} onPress={() => router.push(`/group/${group.id}`)}>
+    <Text style={styles.btnText}>Open Group</Text>
+  </Pressable>
+) : (
+  <View style={{ marginTop: 12 }}>
+    <Text style={{ color: "#9ca3af", fontWeight: "700" }}>
+      No group exists for this product yet.
+    </Text>
 
-      {/* 💳 Payment Modal */}
-      <Modal visible={showPayment} transparent animationType="fade">
-        <View style={styles.modalOverlay}>
-          <View style={styles.modal}>
-            <Text style={styles.modalTitle}>Join Group</Text>
-            <Text style={styles.modalText}>
-              Joining this group costs 1₪
-            </Text>
+    <Pressable style={[styles.btn, { opacity: 0.5 }]} disabled>
+      <Text style={styles.btnText}>Group Unavailable</Text>
+    </Pressable>
+  </View>
+)}
 
-            <Pressable
-              style={styles.payBtn}
-              onPress={handlePayAndJoin}
-            >
-              <Text style={styles.payText}>Pay 1₪</Text>
-            </Pressable>
-
-            <Pressable onPress={() => setShowPayment(false)}>
-              <Text style={styles.cancel}>Cancel</Text>
-            </Pressable>
-          </View>
+          {!!error && <Text style={[styles.err, { marginTop: 12 }]}>{error}</Text>}
         </View>
-      </Modal>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-/* =========================
-   🎨 Styles
-   ========================= */
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#0b0b0f",
-  },
-  image: {
-    width: "100%",
-    height: 260,
-    borderRadius: 20,
-    marginBottom: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "bold",
-    color: "white",
-    marginBottom: 6,
-  },
-  price: {
-    fontSize: 22,
-    fontWeight: "600",
-    color: "#cfcfcf",
-    marginBottom: 18,
-  },
-  progressBar: {
-    height: 10,
-    backgroundColor: "#1f1f2e",
-    borderRadius: 20,
-    overflow: "hidden",
-    marginBottom: 6,
-  },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#22c55e",
-  },
-  meta: {
-    color: "#9a9a9a",
-    fontSize: 13,
-    marginBottom: 10,
-  },
-  badge: {
-    alignSelf: "flex-start",
-    backgroundColor: "#2b2b15",
-    color: "#ffd700",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    fontWeight: "bold",
-    marginBottom: 24,
-    fontSize: 13,
-  },
-  joinButton: {
-    marginTop: "auto",
-    backgroundColor: "#22c55e",
-    paddingVertical: 16,
-    borderRadius: 28,
+  container: { flex: 1, backgroundColor: "#0b0b0f" },
+  center: { justifyContent: "center", alignItems: "center", padding: 16 },
+  image: { width: "100%", height: 320, resizeMode: "cover" },
+  title: { color: "#fff", fontSize: 22, fontWeight: "900" },
+  muted: { color: "#9ca3af", marginTop: 6 },
+  price: { color: "#10b981", fontWeight: "900", fontSize: 18, marginTop: 12 },
+  desc: { color: "#d1d5db", marginTop: 10, lineHeight: 22 },
+  err: { color: "#f87171", fontWeight: "900", textAlign: "center" },
+  btn: {
+    backgroundColor: "#3b82f6",
+    paddingVertical: 14,
+    borderRadius: 12,
     alignItems: "center",
+    marginTop: 14,
   },
-  joinText: {
-    color: "white",
-    fontSize: 17,
-    fontWeight: "700",
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.7)",
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  modal: {
-    backgroundColor: "#1a1a1a",
-    padding: 20,
-    borderRadius: 14,
-    width: 280,
-    alignItems: "center",
-  },
-  modalTitle: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 10,
-  },
-  modalText: {
-    color: "#ccc",
-    marginBottom: 16,
-  },
-  payBtn: {
-    backgroundColor: "#22c55e",
-    paddingVertical: 10,
-    paddingHorizontal: 26,
-    borderRadius: 20,
-    marginBottom: 12,
-  },
-  payText: {
-    color: "white",
-    fontWeight: "700",
-  },
-  cancel: {
-    color: "#f87171",
-  },
-  error: {
-    color: "white",
-    fontSize: 18,
-    textAlign: "center",
-    marginTop: 40,
-  },
+  btnText: { color: "#fff", fontWeight: "900" },
 });

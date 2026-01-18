@@ -1,12 +1,10 @@
 import { useEffect, useState } from "react";
-import { addWishlist, deleteWishlist, getWishlist, type WishlistItem } from "../../api/wishlistApi";
+import { Link } from "react-router-dom";
+import { deleteWishlist, getWishlist, type WishlistItem } from "../../api/wishlistApi";
 
 export default function WishlistPage() {
   const [items, setItems] = useState<WishlistItem[]>([]);
-  const [name, setName] = useState("");
-  const [url, setUrl] = useState("");
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function load() {
@@ -15,7 +13,7 @@ export default function WishlistPage() {
     try {
       setItems(await getWishlist());
     } catch (e: any) {
-      setError(e?.response?.data?.error || e?.message || "Failed to load wishlist");
+      setError(e?.message || "Failed to load wishlist");
     } finally {
       setLoading(false);
     }
@@ -25,104 +23,74 @@ export default function WishlistPage() {
     load();
   }, []);
 
-  async function onAdd() {
-    const n = name.trim();
-    const u = url.trim();
-
-    if (!n) {
-      setError("Name is required");
-      return;
-    }
-
-    setAdding(true);
-    setError(null);
+  async function onRemove(productId: string) {
+    if (!confirm("Remove from wishlist?")) return;
     try {
-      await addWishlist(n, u || undefined);
-      setName("");
-      setUrl("");
+      await deleteWishlist(productId);
       await load();
     } catch (e: any) {
-      setError(e?.response?.data?.error || e?.message || "Failed to add item");
-    } finally {
-      setAdding(false);
-    }
-  }
-
-  async function onDelete(id: string) {
-    if (!confirm("Delete item?")) return;
-    try {
-      await deleteWishlist(id);
-      await load();
-    } catch (e: any) {
-      alert(e?.response?.data?.error || e?.message || "Delete failed");
+      alert(e?.message || "Remove failed");
     }
   }
 
   return (
-    <div className="grid">
-      <div className="card">
-        <h2 style={{ marginTop: 0 }}>Wishlist</h2>
-        <div className="muted">Add items you want your group to buy.</div>
-
-        <div className="hr" />
-
-        <div className="row" style={{ alignItems: "stretch" }}>
-          <div style={{ flex: 2, minWidth: 200 }}>
-            <input
-              className="input"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              placeholder="Item name"
-            />
-          </div>
-
-          <div style={{ flex: 3, minWidth: 260 }}>
-            <input
-              className="input"
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="Optional URL"
-            />
-          </div>
-
-          <button className="btn" onClick={onAdd} disabled={adding}>
-            {adding ? "Adding..." : "Add"}
-          </button>
-        </div>
-
-        {error && <div style={{ color: "crimson", marginTop: 12 }}>{error}</div>}
+    <div>
+      <h2>Wishlist</h2>
+      <div style={{ opacity: 0.75, marginBottom: 12 }}>
+        Products you saved with ❤️
       </div>
 
+      {error && <div style={{ color: "crimson" }}>{error}</div>}
+
       {loading ? (
-        <div className="card">Loading…</div>
+        <div>Loading…</div>
       ) : items.length === 0 ? (
-        <div className="card">
-          <div className="muted">Your wishlist is empty.</div>
-        </div>
+        <div style={{ opacity: 0.75 }}>Your wishlist is empty.</div>
       ) : (
-        <div className="cards">
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12 }}>
           {items.map((it) => (
-            <div key={it.id} className="card">
-              <div style={{ fontWeight: 900 }}>{it.name}</div>
+            <div key={it.id} style={{ background: "#fff", border: "1px solid #ddd", borderRadius: 14, padding: 14 }}>
+              <div style={{ fontWeight: 900 }}>
+                {it.productName ?? "Product"}
+              </div>
 
-              {it.url ? (
-                <a
-                  href={it.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ display: "inline-block", marginTop: 8, textDecoration: "underline" }}
+              <div style={{ fontSize: 12, opacity: 0.75, marginTop: 6 }}>
+                Product ID: {it.productId}
+              </div>
+
+              <div style={{ marginTop: 12, display: "flex", gap: 10 }}>
+                <Link
+                  to={`/products/${it.productId}`}
+                  style={{
+                    flex: 1,
+                    textDecoration: "none",
+                    textAlign: "center",
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: "1px solid #111",
+                    background: "#111",
+                    color: "#fff",
+                    fontWeight: 900,
+                  }}
                 >
-                  Open link
-                </a>
-              ) : (
-                <div className="muted" style={{ marginTop: 8 }}>No URL</div>
-              )}
+                  Open
+                </Link>
 
-              <div className="hr" />
-
-              <button className="btn danger" onClick={() => onDelete(it.id)}>
-                Delete
-              </button>
+                <button
+                  onClick={() => onRemove(it.productId)}
+                  style={{
+                    padding: "10px 12px",
+                    borderRadius: 12,
+                    border: "1px solid #c0392b",
+                    background: "#c0392b",
+                    color: "#fff",
+                    fontWeight: 900,
+                    cursor: "pointer",
+                  }}
+                >
+                  Remove
+                </button>
+              </div>
             </div>
           ))}
         </div>

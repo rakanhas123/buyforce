@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { getGroupById, joinGroup, leaveGroup } from "../../api/groupsApi";
+import { getGroup, joinGroup, leaveGroup, type Group } from "../../api/groupsApi";
 import PayNowButton from "../../components/PayNowButton";
 
 function ProgressBar({ value }: { value: number }) {
@@ -19,7 +19,7 @@ export default function GroupDetailsPage() {
   const { id } = useParams();
   const nav = useNavigate();
 
-  const [group, setGroup] = useState<any>(null);
+  const [group, setGroup] = useState<Group | null>(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -29,7 +29,7 @@ export default function GroupDetailsPage() {
     try {
       setError(null);
       setLoading(true);
-      const item = await getGroupById(groupId);
+      const item = await getGroup(groupId);
       setGroup(item);
     } catch (e: any) {
       setError(e?.response?.data?.error || e?.message || "Failed to load group");
@@ -79,14 +79,15 @@ export default function GroupDetailsPage() {
   if (error) return <div className="card" style={{ color: "crimson" }}>{error}</div>;
   if (!group) return <div className="card">Not found</div>;
 
-  const canPay = !!group.canPay;
+  const canPay = Boolean(group.canPay);
+  const isJoined = Boolean(group.isJoined);
 
   return (
     <div className="grid">
       <div className="card">
         <Link to="/groups" className="muted">← Back to Groups</Link>
 
-        <h2 style={{ marginTop: 10, marginBottom: 6 }}>{group.name}</h2>
+        <h2 style={{ marginTop: 10, marginBottom: 6 }}>{group.name ?? "Group"}</h2>
         {group.description && <div className="muted">{group.description}</div>}
 
         <div className="hr" />
@@ -97,12 +98,11 @@ export default function GroupDetailsPage() {
           {group.endsAt && <span className="pill">Ends: {new Date(group.endsAt).toLocaleString()}</span>}
         </div>
 
-        <ProgressBar value={group.progress ?? 0} />
+        <ProgressBar value={Number(group.progress ?? 0)} />
 
         <div className="hr" />
 
-        {/* Actions */}
-        {!group.isJoined ? (
+        {!isJoined ? (
           <button className="btn" onClick={onJoin} disabled={joining}>
             {joining ? "Joining…" : "Join group"}
           </button>
@@ -112,7 +112,6 @@ export default function GroupDetailsPage() {
               {leaving ? "Leaving…" : "Leave group"}
             </button>
 
-            {/* ONLY show pay inside details, only when joined */}
             {canPay ? (
               <PayNowButton groupId={group.id} />
             ) : (
@@ -127,7 +126,7 @@ export default function GroupDetailsPage() {
           </div>
         )}
 
-        {!canPay && group.isJoined && (
+        {!canPay && isJoined && (
           <div className="muted" style={{ marginTop: 10 }}>
             Payment unlocks when participants reach the minimum.
           </div>

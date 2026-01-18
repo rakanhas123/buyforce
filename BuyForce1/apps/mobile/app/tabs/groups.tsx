@@ -4,221 +4,159 @@ import {
   FlatList,
   StyleSheet,
   Pressable,
-  Image,
+  ActivityIndicator,
+  RefreshControl,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useRouter } from "expo-router";
+import { useState, useEffect } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { groupsApi, Group } from "../../lib/api";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
+export default function GroupsScreen() {
+  const router = useRouter();
+  const [groups, setGroups] = useState<Group[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  
+useFocusEffect(
+  useCallback(() => {
+    loadGroups();
+  }, [])
+);
 
-/* ================= Types ================= */
-type Group = {
-  id: string;
-  title: string;
-  price: number;
-  image: string;
-  members: number;
-  goal: number;
-  categoryId: string;
-  productId: number; //Added to link to product
+const loadGroups = async () => {
+  try {
+    setLoading(true);
+
+    const data = await groupsApi.getAll();
+
+    // ✅ supports both: array OR { items: [...] }
+    const items = Array.isArray(data) ? data : (data as any)?.items ?? [];
+
+    setGroups(items);
+  } catch (error) {
+    console.error("Failed to load groups:", error);
+    setGroups([]);
+  } finally {
+    setLoading(false);
+    setRefreshing(false);
+  }
 };
 
-/* ================= Data ================= */
-const GROUPS: Group[] = [
-  {
-    id: "g1",
-    title: "Apple AirPods Pro Group",
-    price: 899,
-    image: "...",
-    members: 62,
-    goal: 100,
-    categoryId: "accessories",
-    productId: 1, // 🔗 קשור למוצר AirPods
-  },
-  {
-    id: "g2",
-    title: "Running Shoes Group",
-    price: 349,
-    image: "...",
-    members: 12,
-    goal: 50,
-    categoryId: "sports",
-    productId: 3, // 🔗 קשור לנעליים
-  },
-  {
-    id: "g3",
-    title: "Wireless Headphones",
-    price: 399,
-    image:
-      "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=60",
-    members: 68,
-    goal: 100,
-    categoryId: "accessories",
-    productId: 1,
-  },
-  {
-    id: "g4",
-    title: "Smartphone Pro",
-    price: 3499,
-    image:
-      "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=800&q=60",
-    members: 91,
-    goal: 100,
-    categoryId: "mobile",
-    productId: 2,
-  },
-  {
-  id: "g5",
-  title: "Luxury Perfume Group",
-  price: 249,
-  image:
-    "https://images.unsplash.com/photo-1594035910387-fea47794261f?auto=format&fit=crop&w=800&q=60",
-  members: 18,
-  goal: 100,
-  categoryId: "perfume",
-  productId: 4, // ✅ הבושם
-},
-];
 
-/* ================= Screen ================= */
-export default function GroupsScreen() {
-const { categoryId, productId } = useLocalSearchParams<{
-  categoryId?: string;
-  productId?: string;
-}>();
-  const router = useRouter();
-  const [sort, setSort] = useState<"popular" | "priceLow" | "priceHigh">(
-    "popular"
-  );
-const filteredAndSorted = useMemo(() => {
-  let list = GROUPS;
+  const onRefresh = () => {
+    setRefreshing(true);
+    loadGroups();
+  };
 
-  // 🟢 סינון לפי מוצר (אם הגיע מ־Join Group)
-  if (productId) {
-    list = list.filter(
-      (g) => g.productId === Number(productId)
+  const handleBack = () => {
+    if (router.canGoBack()) router.back();
+    else router.replace("/tabs/home");
+  };
+
+  const statusLabel = (s?: string) => {
+    switch (s) {
+      case "OPEN":
+        return "Open";
+      case "LOCKED":
+        return "Locked";
+      case "CHARGED":
+        return "Charged";
+      case "FAILED":
+        return "Failed";
+      case "COMPLETED":
+        return "Completed";
+      default:
+        return s ?? "—";
+    }
+  };
+
+  const statusColor = (s?: string) => {
+    switch (s) {
+      case "OPEN":
+        return "#10b981"; // green
+      case "LOCKED":
+        return "#f59e0b"; // amber
+      case "CHARGED":
+      case "COMPLETED":
+        return "#3b82f6"; // blue
+      case "FAILED":
+        return "#ef4444"; // red
+      default:
+        return "#6b7280"; // gray
+    }
+  };
+
+  const formatDate = (iso?: string | null) => {
+    if (!iso) return "—";
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return "—";
+    return d.toLocaleDateString("en-US");
+  };
+
+  if (loading) {
+    return (
+      <View style={[styles.container, styles.centered]}>
+        <ActivityIndicator size="large" color="#fff" />
+        <Text style={styles.loadingText}>Loading groups...</Text>
+      </View>
     );
   }
-
-  // 🟢 סינון לפי קטגוריה (אם קיים)
-  if (categoryId) {
-    list = list.filter(
-      (g) => g.categoryId === categoryId
-    );
-  }
-
-  // 🟢 מיון
-  if (sort === "priceLow") {
-    list = [...list].sort((a, b) => a.price - b.price);
-  } else if (sort === "priceHigh") {
-    list = [...list].sort((a, b) => b.price - a.price);
-  } else {
-    list = [...list].sort(
-      (a, b) => b.members / b.goal - a.members / a.goal
-    );
-  }
-
-  return list;
-}, [categoryId, productId, sort]);
-
 
   return (
     <View style={styles.container}>
-      {/* ===== Header ===== */}
-      <Text style={styles.title}>Groups</Text>
-      {categoryId && (
-        <Text style={styles.subtitle}>{categoryId}</Text>
-      )}
-
-      {/* ===== Filters ===== */}
-      <View style={styles.filters}>
-        <FilterButton
-          label="Popular"
-          active={sort === "popular"}
-          onPress={() => setSort("popular")}
-        />
-        <FilterButton
-          label="Price ↑"
-          active={sort === "priceLow"}
-          onPress={() => setSort("priceLow")}
-        />
-        <FilterButton
-          label="Price ↓"
-          active={sort === "priceHigh"}
-          onPress={() => setSort("priceHigh")}
-        />
+      <View style={styles.header}>
+        <Pressable style={styles.backButton} onPress={handleBack}>
+          <Ionicons name="arrow-back" size={26} color="white" />
+        </Pressable>
+        <Text style={styles.title}>Groups</Text>
       </View>
 
-      {/* ===== Grid ===== */}
       <FlatList
-        data={filteredAndSorted}
-        keyExtractor={(item) => item.id}
+        data={groups}
+        keyExtractor={(item) => String(item.id)}
         numColumns={2}
         columnWrapperStyle={{ gap: 12 }}
         contentContainerStyle={{ gap: 12, paddingBottom: 80 }}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#fff" />
+        }
         renderItem={({ item }) => {
-          const progress = Math.round(
-            (item.members / item.goal) * 100
-          );
+          const joined = Number(item.joinedCount ?? 0);
+          const min = Number(item.minParticipants ?? 0);
+
+          // createdAt can be returned as createdAt or created_at depending on backend
+          const createdIso =
+            (item as any).createdAt ??
+            (item as any).created_at ??
+            null;
 
           return (
-            <Pressable
-              style={styles.card}
-              onPress={() => router.push("/groups")}
-            >
-              <Image
-                source={{ uri: item.image }}
-                style={styles.image}
-              />
-
-              <Text style={styles.cardTitle}>{item.title}</Text>
-              <Text style={styles.price}>₪{item.price}</Text>
-
-              <View style={styles.progressBar}>
-                <View
-                  style={[
-                    styles.progressFill,
-                    { width: `${progress}%` },
-                  ]}
-                />
+            <Pressable style={styles.card} onPress={() => router.push(`/group/${item.id}`)}>
+              <View style={[styles.statusBadge, { backgroundColor: statusColor(item.status) }]}>
+                <Text style={styles.statusText}>{statusLabel(item.status)}</Text>
               </View>
 
-              <Text style={styles.meta}>
-                {item.members}/{item.goal} members
+              <Text style={styles.cardTitle} numberOfLines={2}>
+                {item.name}
               </Text>
+
+              <Text style={styles.members}>
+                Members: {joined}/{min || "—"}
+              </Text>
+
+              <Text style={styles.date}>Created: {formatDate(createdIso)}</Text>
             </Pressable>
           );
         }}
+        ListEmptyComponent={
+          <View style={styles.empty}>
+            <Text style={styles.emptyText}>No groups to display</Text>
+          </View>
+        }
       />
     </View>
-  );
-}
-
-/* ================= Filter Button ================= */
-function FilterButton({
-  label,
-  active,
-  onPress,
-}: {
-  label: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      style={[
-        styles.filterButton,
-        active && styles.filterButtonActive,
-      ]}
-    >
-      <Text
-        style={[
-          styles.filterText,
-          active && styles.filterTextActive,
-        ]}
-      >
-        {label}
-      </Text>
-    </Pressable>
   );
 }
 
@@ -229,70 +167,73 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: "#0b0b0f",
   },
+  centered: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#9a9a9a",
+    marginTop: 12,
+    fontSize: 16,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    marginBottom: 16,
+  },
+  backButton: {
+    backgroundColor: "rgba(0,0,0,0.55)",
+    borderRadius: 20,
+    padding: 6,
+  },
   title: {
     fontSize: 26,
     fontWeight: "bold",
     color: "white",
   },
-  subtitle: {
-    color: "#aaa",
-    marginBottom: 12,
-  },
-  filters: {
-    flexDirection: "row",
-    gap: 10,
-    marginBottom: 12,
-  },
-  filterButton: {
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 20,
-    backgroundColor: "#ffffff22",
-  },
-  filterButtonActive: {
-    backgroundColor: "#ffffff55",
-  },
-  filterText: {
-    color: "#aaa",
-    fontSize: 13,
-  },
-  filterTextActive: {
-    color: "white",
-    fontWeight: "600",
-  },
   card: {
     flex: 1,
     backgroundColor: "#141421",
     borderRadius: 16,
-    padding: 10,
-    gap: 6,
+    padding: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: "#1f1f2e",
   },
-  image: {
-    width: "100%",
-    height: 110,
+  statusBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 12,
+  },
+  statusText: {
+    color: "white",
+    fontSize: 11,
+    fontWeight: "600",
   },
   cardTitle: {
     color: "white",
     fontSize: 15,
     fontWeight: "600",
   },
-  price: {
-    color: "#aaa",
-    fontSize: 13,
+  members: {
+    color: "#cbd5e1",
+    fontSize: 12,
+    fontWeight: "600",
   },
-  progressBar: {
-    height: 6,
-    backgroundColor: "#ffffff22",
-    borderRadius: 10,
-    overflow: "hidden",
+  date: {
+    color: "#6b7280",
+    fontSize: 12,
   },
-  progressFill: {
-    height: "100%",
-    backgroundColor: "#22c55e",
+  empty: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 40,
   },
-  meta: {
-    color: "#aaa",
-    fontSize: 11,
+  emptyText: {
+    color: "#9a9a9a",
+    fontSize: 16,
   },
 });

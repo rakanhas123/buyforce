@@ -77,10 +77,16 @@ export default function App() {
               B
             </div>
 
-            <div style={{ display: "flex", gap: 10 }}>
-              <NavButton to="/groups" label="Groups" />
-              <NavButton to="/wishlist" label="Wishlist" />
-            </div>
+<div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+  <NavButton to="/" label="Home" />
+  <NavButton to="/categories" label="Categories" />
+  <NavButton to="/products" label="Products" />
+  <NavButton to="/my-groups" label="My Groups" />
+  <NavButton to="/notifications" label="Notifications" />
+  <NavButton to="/search" label="Search" />
+  <NavButton to="/groups" label="Groups" />
+  <NavButton to="/wishlist" label="Wishlist" />
+</div>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>

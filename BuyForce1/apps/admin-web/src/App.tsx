@@ -1,35 +1,45 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AdminAuthProvider } from "./auth/AdminAuthContext";
+import AdminProtectedRoute from "./auth/AdminProtectedRoute";
+import AdminLayout from "./layout/AdminLayout";
 
-function App() {
-  const [count, setCount] = useState(0)
+import AdminLoginPage from "./pages/AdminLoginPage";
 
+// pages
+import AdminHomePage from "./pages/AdminHomePage";
+import AdminCategoriesPage from "./pages/AdminCategoriesPage";
+import AdminProductsPage from "./pages/AdminProductsPage";
+import AdminGroupsPage from "./pages/AdminGroupsPage";
+import AdminWishlistPage from "./pages/AdminWishlistPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
+
+export default function App() {
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <AdminAuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route path="/admin/login" element={<AdminLoginPage />} />
 
-export default App
+          <Route
+            path="/admin"
+            element={
+              <AdminProtectedRoute>
+                <AdminLayout />
+              </AdminProtectedRoute>
+            }
+          >
+            <Route index element={<Navigate to="/admin/home" replace />} />
+            <Route path="home" element={<AdminHomePage />} />
+            <Route path="categories" element={<AdminCategoriesPage />} />
+            <Route path="products" element={<AdminProductsPage />} />
+            <Route path="groups" element={<AdminGroupsPage />} />
+            <Route path="wishlist" element={<AdminWishlistPage />} />
+            <Route path="users" element={<AdminUsersPage />} />
+          </Route>
+
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
+      </BrowserRouter>
+    </AdminAuthProvider>
+  );
+}

@@ -27,11 +27,15 @@ export default function AppLayout() {
           <div className="brand">
             <div className="badge">B</div>
             <div>BuyForce</div>
-
-            <div className="nav" style={{ marginLeft: 12 }}>
-              <NavLink to="/groups" label="Groups" />
-              <NavLink to="/wishlist" label="Wishlist" />
-            </div>
+<div className="nav" style={{ marginLeft: 12 }}>
+<NavLink to="/" label="Home" />
+<NavLink to="/categories" label="Categories" />
+<NavLink to="/products" label="Products" />
+<NavLink to="/my-groups" label="My Groups" />
+<NavLink to="/notifications" label="Notifications" />
+<NavLink to="/search" label="Search" />
+<NavLink to="/wishlist" label="Wishlist" />
+</div>
           </div>
 
           <div className="nav">

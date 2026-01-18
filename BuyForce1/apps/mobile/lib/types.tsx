@@ -15,3 +15,4 @@ export type Group = {
   goal: number;
   categoryId: string;
 };
+export default {};

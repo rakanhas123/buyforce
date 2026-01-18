@@ -1,24 +1,30 @@
 import { Link, Outlet, useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "../lib/AuthContext";
+import { useAdminAuth } from "../auth/AdminAuthContext";
 
-function NavLink({ to, label }: { to: string; label: string }) {
+function Nav({ to, label }: { to: string; label: string }) {
   const { pathname } = useLocation();
   const active = pathname === to || pathname.startsWith(to + "/");
 
   return (
     <Link to={to}>
-      <button className={`btn ${active ? "" : "secondary"}`}>{label}</button>
+      <button type="button" className={`btn ${active ? "" : "secondary"}`}>
+        {label}
+      </button>
     </Link>
   );
 }
 
 export default function AdminLayout() {
-  const { user, logout } = useAuth();
+  const { logout } = useAdminAuth();
   const nav = useNavigate();
 
   function onLogout() {
     logout();
-    nav("/login");
+    nav("/admin/login", { replace: true });
+  }
+
+  function onRefresh() {
+    window.location.reload();
   }
 
   return (
@@ -27,18 +33,24 @@ export default function AdminLayout() {
         <div className="topbar-inner">
           <div className="brand">
             <div className="badge">A</div>
-            <div>BuyForce Admin</div>
+            <div style={{ fontWeight: 900 }}>Admin</div>
+          </div>
 
-            <div className="nav" style={{ marginLeft: 12 }}>
-              <NavLink to="/admin/groups" label="Groups" />
-              <NavLink to="/admin/users" label="Users" />
-              <NavLink to="/admin/wishlist" label="Wishlists" />
-            </div>
+          <div className="nav">
+            <Nav to="/admin/dashboard" label="Dashboard" />
+            <Nav to="/admin/products" label="Products" />
+            <Nav to="/admin/categories" label="Categories" />
+            <Nav to="/admin/notifications" label="Notifications" />
+            <Nav to="/admin/users" label="Users" />
+            <Nav to="/admin/groups" label="Groups" />
+            <Nav to="/admin/wishlist" label="Wishlist" />
           </div>
 
           <div className="row">
-            <span className="muted">{user?.fullName ?? user?.email ?? "Admin"}</span>
-            <button className="btn danger" onClick={onLogout}>
+            <button type="button" className="btn secondary" onClick={onRefresh}>
+              Refresh
+            </button>
+            <button type="button" className="btn danger" onClick={onLogout}>
               Logout
             </button>
           </div>
