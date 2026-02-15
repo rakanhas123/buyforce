@@ -144,3 +144,10 @@ Backend: Node.js, Express
 Database: PostgreSQL (or MongoDB)
 
 Authentication: JWT (JSON Web Tokens)
+Docker
+
+Build:
+docker build -t buyforce-backend ./BuyForce-Backend
+
+Run:
+docker run -p 3000:3000 buyforce-backend
